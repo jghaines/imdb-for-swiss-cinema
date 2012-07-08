@@ -1,9 +1,21 @@
 {
+	"name":         				"IMDB for Swiss cinema",
+	"version":      				"0.1.0",
+
+	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
+	"homepage_url":					"http://jhaines.name/imdb-for-swiss-cinema/",
+	"icons":						{	"16":	"images/imdb-swiss-16.png",
+										"48":	"images/imdb-swiss-48.png",
+										"128":	"images/imdb-swiss-128.png"
+									},
+									
+	"manifest_version":  			2,
+
     "content_scripts": [ {
         "exclude_globs":    [],
         "include_globs":    [	"*" ],
         "js":               [	"src/jquery-1.7.2.min.js",
-								"src/swiss-cinema.v0.7.js"
+								"src/swiss-cinema.js"
 							],
         "matches":          [	"http://*.cineman.ch/*",
 								"http://cineman.ch/*",
@@ -14,13 +26,10 @@
                             ]
     } ],
 	"converted_from_user_script":	true,
-	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
-	"name":         				"IMDB for Swiss cinema",
-	"version":      				"0.7",
 	
 	"permissions":					[	"storage",
 										"http://www.imdb.com/*",
 										"http://www.imdbapi.com/*"
 									],
-	"minimum_chrome_version":		"13.0"
+	"minimum_chrome_version":		"18.0"
 }

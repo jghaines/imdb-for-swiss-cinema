@@ -50,7 +50,7 @@ function FilmPodiumHandler () {
         // @returns whether we can handle this page
         // </summary>
 		
-		return (null != href.match( "filmpodium.ch/" ));
+		return (null != href.match( "filmpodium.ch/.*/ReiheInfo.aspx" ));
 	};
 	
     
@@ -109,13 +109,13 @@ function FilmPodiumHandler () {
 function extractOrangeCinemaMovieName( movieName ) {
 	movieName = movieName.replace( /^\s*[^\w]+/, "" ); // strip leading non-word (left angle quote)
 	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces
-	movieName = movieName.replace( /^\w+\s+Night\s*\:\s*/, "" ); // strip special Nights (Orange, ZKB etc)
+	movieName = movieName.replace( /^.+Night\s*\:\s*/, "" ); // strip special Nights (Orange, ZKB etc)
 	movieName = movieName.replace( /^Vorpremiere\s*\:\s*/, "" ); // other prefixes
 	movieName = movieName.replace( /^Deutschschweizer Erstauff.hrung\s*\:\s*/, "" );
 	movieName = movieName.replace( /^Z.rich Film Festival\s*\:\s*/, "" );
 	movieName = movieName.replace( /^Live orchestriert\s*\:\s*Charlie Chaplin\s*[-\:]*\s*/, "" );
 	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces again
-	movieName = movieName.replace( /[^\w]?\s*$/, ""); // strip trailing non-word (right angle quote)
+	movieName = movieName.replace( /\s*[^\w]?\s*$/, ""); // strip trailing non-word (right angle quote)
 
 	return movieName;
 }
@@ -296,7 +296,8 @@ function CinemanListHandler () {
         // @returns whether we can handle this page
         // </summary>
 		
-		return ( null != href.match( "cineman.ch/.*/(jetzt_im_kino.php|theatre/detail.php|comingsoon)" ));
+		return ( null !=
+			href.match( "cineman.ch/.*/(jetzt_im_kino.php|theatre/detail.php|process.php|comingsoon|openair/movies.php)" ));
 	};
 	
     

@@ -43,6 +43,23 @@ describe("ImdbComMovieLookup", function() {
 });
 
 
+
+
+describe("CinemanListHandler", function() {
+	var handler;
+
+	beforeEach(function() {
+		handler = new CinemanListHandler();
+	});
+
+	describe("match", function() {
+		it("should be match on process.php pages", function() {
+			expect(handler.match("http://www.cineman.ch/en/showtimes/process.php?order=movie&lang=en&date=2012-07-08")).toBe(true);
+		});
+	});
+});
+
+
 var orangecinemaTestDocuments = {
 	"overview.php" : $('<tbody>').html( hereDoc(function() {/*!
 			<tr valign="middle" style="background-color: #efefef;">
@@ -194,20 +211,112 @@ describe("ImdbForSwissCinema", function() {
 		handler = new ImdbForSwissCinema(movieLookup);
 	});
 
-	it("should find a handler for the URL http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=cinema", function() {
-		expect(handler.getPageHandler( "http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=cinema" ) instanceof CinemanListHandler).toBe(true);
+
+	describe("CinemanListHandler", function() {
+		it("should match handler for the URL " + "http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=cinema", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=cinema" ) instanceof CinemanListHandler).toBe(true);
+		});
+
+		it("should match handler for the URL " + "http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=movie", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=movie" ) instanceof CinemanListHandler).toBe(true);
+		});
+
+		it("should match handler for the URL " + "http://www.cineman.ch/en/showtimes/process.php?order=movie&lang=en", function() {
+			expect(handler.getPageHandler("http://www.cineman.ch/en/showtimes/process.php?order=movie&lang=en") instanceof CinemanListHandler).toBe(true);
+		});
+	
+		it("should match handler for the URL " + "http://www.cineman.ch/en/showtimes/process.php?order=time&lang=en", function() {
+			expect(handler.getPageHandler("http://www.cineman.ch/en/showtimes/process.php?order=time&lang=en") instanceof CinemanListHandler).toBe(true);
+		});
+	
+		it("should match handler for the URL " + "http://www.cineman.ch/en/comingsoon/", function() {
+			expect(handler.getPageHandler("http://www.cineman.ch/en/comingsoon/") instanceof CinemanListHandler).toBe(true);
+		});
+		
+		it("should match handler for the URL " + "http://www.cineman.ch/en/kinoprogramm/openair/movies.php", function() {
+			expect(handler.getPageHandler("http://www.cineman.ch/en/kinoprogramm/openair/movies.php") instanceof CinemanListHandler).toBe(true);
+		});
+		
+	});
+	
+	
+	describe("FilmPodiumHandler", function() {
+		it("should match handler for the URL " + "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3", function() {
+			expect(handler.getPageHandler( "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3" ) instanceof FilmPodiumHandler).toBe(true);
+		});
+
 	});
 
-	it("should find a handler for the URL http://www.orangecinema.ch/zuerich/overview.php?menu_sel=2010", function() {
-		expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/overview.php?menu_sel=2010" ) instanceof OrangeCinemaProgramHandler).toBe(true);
+		
+	describe("OrangeCinemaProgramHandler", function() {
+		it("should match handler for the URL " + "http://www.orangecinema.ch/zuerich/overview.php?menu_sel=2010", function() {
+			expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/overview.php?menu_sel=2010" ) instanceof OrangeCinemaProgramHandler).toBe(true);
+		});
+
+		it("should match handler for the URL " + "http://www.orangecinema.ch/bern/overview.php?menu_sel=2011", function() {
+			expect(handler.getPageHandler( "http://www.orangecinema.ch/bern/overview.php?menu_sel=2011" ) instanceof OrangeCinemaProgramHandler).toBe(true);
+		});
 	});
 
-	it("should find a handler for the URL http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1", function() {
-		expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1" ) instanceof OrangeCinemaSpecialsListHandler ).toBe(true);
+		
+	describe("OrangeCinemaSpecialsListHandler", function() {
+		it("should match handler for the URL http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1", function() {
+			expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1" ) instanceof OrangeCinemaSpecialsListHandler ).toBe(true);
+		});
 	});
 
-	it("should NOT find a handler for the URL http://www.google.com/", function() {
-		expect(handler.getPageHandler( "http://www.google.com/" )).toBe(null);
+	
+	describe("Non handlers", function() {
+		it("should NOT match a handler for the URL " + "http://www.google.com/", function() {
+			expect(handler.getPageHandler( "http://www.google.com/" )).toBe(null);
+		});
+
+		it("should NOT match a handler for the URL " + "http://www.cineman.ch/en/", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
+		});
+		
+		it("should NOT match a handler for the URL " + "http://www.orangecinema.ch/staedte.php", function() {
+			expect(handler.getPageHandler( "http://www.orangecinema.ch/staedte.php" )).toBe(null);
+		});
+	});
+
+
+	describe("Not yet handled", function() {
+		it("shouldn't match for the URL " + "http://www.orangecinema.ch/zuerich/event.php?id=1", function() {
+			expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/event.php?id=1" )).toBe(null);
+		});
+		
+		it("shouldn't match for the URL " + "http://www.orangecinema.ch/zuerich/specials_02_unicef.php?tab_sel=2&menu_sel=specials", function() {
+			expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/specials_02_unicef.php?tab_sel=2&menu_sel=specials" )).toBe(null);
+		});
+
+		it("shouldn't match for the URL " + "http://www.filmpodium.ch/", function() {
+			expect(handler.getPageHandler( "http://www.filmpodium.ch/" )).toBe(null);
+		});
+		
+		it("shouldn't match for the URL " + "http://www.filmpodium.ch/Programm/HeuteDetails.aspx?d=2012-07-08", function() {
+			expect(handler.getPageHandler( "http://www.filmpodium.ch/Programm/HeuteDetails.aspx?d=2012-07-08" )).toBe(null);
+		});		
+		
+		it("shouldn't match for the URL " + "http://www.cineman.ch/en/rating/", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
+		});
+		
+		it("shouldn't match for the URL " + "http://www.cineman.ch/en/watchlist/charts.php", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
+		});
+		
+		it("shouldn't match for the URL " + "http://www.cineman.ch/en/trailer/", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
+		});
+		
+		it("shouldn't match for the URL " + "http://www.cineman.ch/en/dvd/", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
+		});
+		
+		it("shouldn't match for the URL " + "http://www.cineman.ch/en/movie/list/", function() {
+			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
+		});
 	});
 
 });

@@ -1,0 +1,26 @@
+{
+    "content_scripts": [ {
+        "exclude_globs":    [],
+        "include_globs":    [	"*" ],
+        "js":               [	"src/jquery-1.7.2.min.js",
+								"src/swiss-cinema.v0.7.js"
+							],
+        "matches":          [	"http://*.cineman.ch/*",
+								"http://cineman.ch/*",
+								"http://*.orangecinema.ch/*",
+								"http://orangecinema.ch/*",
+								"http://*.filmpodium.ch/*",
+								"http://filmpodium.ch/*"
+                            ]
+    } ],
+	"converted_from_user_script":	true,
+	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
+	"name":         				"IMDB for Swiss cinema",
+	"version":      				"0.7",
+	
+	"permissions":					[	"storage",
+										"http://www.imdb.com/*",
+										"http://www.imdbapi.com/*"
+									],
+	"minimum_chrome_version":		"13.0"
+}

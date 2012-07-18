@@ -5,7 +5,7 @@ function hereDoc(f) {
 			replace(/\*\/[^\/]+$/, '');
 }
 
-
+// Imdb class tests
 describe("ImdbComMovieLookup", function() {
 	var lookup;
 
@@ -42,9 +42,94 @@ describe("ImdbComMovieLookup", function() {
 	});
 });
 
+describe("ImdbMarkup", function() {
 
+	var pageHandler;
+	var movieLookupHandler;
+	var cache;
 
+	function DummyMovieHandler() {
+		this.loadImdbInfoForMovieName = function(movieName) {
+			var imdbInfo = new ImdbInfo();
+			imdbInfo.Title = movieName;
+			return imdbInfo;
+		}
+		
+		this.imdbSearchUrl = function(movieName) {
+			return "http://example.com";
+		}
+	}
+	
+	beforeEach(function() {
+		pageHandler = new CinemanListHandler();
+		movieLookupHandler = new DummyMovieHandler();
+		cache = [];
+	});
 
+	it("should be able to run on a document with no matching elements", function() {
+		spyOn(pageHandler, 'match').andReturn(true);
+		spyOn(pageHandler, 'addRatingElement');
+		spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn("movieName");
+		spyOn(pageHandler, 'getMovieElements').andReturn( [] );
+
+		// do the markup
+		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache);
+		var baseElement = jasmine.createSpyObj('baseElement', ['dunno']);
+		markup.doMarkup( baseElement );
+		
+		expect(pageHandler.getMovieElements).toHaveBeenCalledWith(baseElement);
+		expect(pageHandler.getMovieNameForMovieElement).not.toHaveBeenCalled();
+	});
+///////////////////
+	it("should be able to run on a document with a single matching element", function() {
+		var elements = [ document.createElement("element") ];
+
+		spyOn(pageHandler, 'match').andReturn(true);
+		spyOn(pageHandler, 'addRatingElement');
+		spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn("movieName");
+		spyOn(pageHandler, 'getMovieElements').andReturn( elements );
+
+		// do the markup
+		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
+		var baseElement = jasmine.createSpyObj('baseElement', ['nomethods']);
+		markup.doMarkup( elements[0] );
+		
+		expect(pageHandler.getMovieElements).toHaveBeenCalled();
+		expect(pageHandler.getMovieNameForMovieElement).toHaveBeenCalledWith( elements[0] );
+	});
+});
+
+// ImdbMovieLookup tests - TODO
+describe("ImdbComMovieLookup", function() {
+	it("TODO", function() {
+	});
+});
+	
+describe("ImdbApiComMovieLookup", function() {
+	it("TODO", function() {
+	});
+});
+
+// misc function - extractOrangeCinemaMovieName
+describe("extractOrangeCinemaMovieName", function() {
+	var orangeMovieNameMap = {
+		"Vorpremiere: To Rome with Love" 		: "To Rome with Love",
+		"Eröffnungsfilm/Vorpremiere: Starbuck"	: "Starbuck",
+	};
+
+	describe("it to extract a bunch of movieNames", function() {
+		for ( var origMovieName in orangeMovieNameMap ) {
+			var mappedMovieNameMap = orangeMovieNameMap[origMovieName];
+
+			it("should be map " + origMovieName, function() {
+				expect(extractOrangeCinemaMovieName(origMovieName)).toBe(mappedMovieNameMap);
+			});
+		}
+	});
+
+});
+
+// MoviePageHandler tests
 describe("CinemanListHandler", function() {
 	var handler;
 
@@ -59,6 +144,129 @@ describe("CinemanListHandler", function() {
 	});
 });
 
+var filmpodiumTestDocuments = {
+	"ReiheInfo.aspx" : $('<tbody>').html( hereDoc(function() {/*!
+		<tr>
+			<td>
+                <input type="hidden" name="ctl00$cphContentMain$dlFilmezuReihe$ctl03$hdnMovieId" id="ctl00_cphContentMain_dlFilmezuReihe_ctl03_hdnMovieId" value="14873">
+                <div id="ctl00_cphContentMain_dlFilmezuReihe_ctl03_pnlLine2" class="linie inhalt">
+				
+                    &nbsp;
+			</div>
+                <div class="clear">
+                </div>
+                <table border="0">
+				<tbody><tr>
+					<td valign="top" style="width:200px;"><a id="ctl00_cphContentMain_dlFilmezuReihe_ctl03_lnkFilmtitel" class="inhalt_bold" href="FilmDetails.aspx?t=1&amp;f=14873">The Running Jumping &amp; Standing Still Film</a>
+                            <br>
+                            GB 1960<br><span name="The Running Jumping &amp; Standing Still Film"><a href="http://www.imdb.com/title/tt0053231/">IMDb:&nbsp;<span class="imdbRating">6.6</span></a></span></td><td valign="top" style="width:150px;"><span id="ctl00_cphContentMain_dlFilmezuReihe_ctl03_lblRegie">Regie: Richard Lester</span></td><td valign="top" style="width:100px;">ohne Dialog<br></td><td id="ctl00_cphContentMain_dlFilmezuReihe_ctl03_NoDataTableRow" valign="top" style="width:140px;">Vorfilm: «Help!»&nbsp;
+                        </td>
+				</tr>
+			</tbody></table>
+                
+            </td>
+		</tr>
+		
+		<tr>
+					<td valign="top" style="width:200px;"><a id="ctl00_cphContentMain_dlFilmezuReihe_ctl04_lnkFilmtitel" class="inhalt_bold" href="FilmDetails.aspx?t=1&amp;f=12005">A Hard Day's Night</a>
+                            <br>
+                            GB 1964<br><span name="A Hard Day's Night"><a href="http://www.imdb.com/title/tt0058182/">IMDb:&nbsp;<span class="imdbRating">7.6</span></a></span></td><td valign="top" style="width:150px;"><span id="ctl00_cphContentMain_dlFilmezuReihe_ctl04_lblRegie">Regie: Richard Lester</span></td><td valign="top" style="width:100px;">E/d/f<br>12 J</td><td id="ctl00_cphContentMain_dlFilmezuReihe_ctl04_ContentTableRow" valign="top" style="width:140px;"><table id="ctl00_cphContentMain_dlFilmezuReihe_ctl04_dlSpieldatenZuFilm" cellspacing="0" border="0" style="border-collapse:collapse;">
+						<tbody><tr>
+							<td>
+                                    <table border="0" cellpadding="0" cellspacing="0">
+                                
+						<tbody><tr>
+							<td>
+                                    </td></tr><tr>
+                                        <td width="20">
+                                            So,&nbsp;
+                                        </td>
+                                        <td width="90">
+                                            01.07.2012&nbsp;
+                                        </td>
+                                        <td width="30">
+                                            15:00
+                                        </td>
+                                        
+                                    </tr>
+                                
+						<tr>
+							<td>
+                                    </td></tr><tr>
+                                        <td width="20">
+                                            Di,&nbsp;
+                                        </td>
+                                        <td width="90">
+                                            03.07.2012&nbsp;
+                                        </td>
+                                        <td width="30">
+                                            20:45
+                                        </td>
+                                        
+                                    </tr>
+                                
+						<tr>
+							<td>
+                                    </td></tr><tr>
+                                        <td width="20">
+                                            So,&nbsp;
+                                        </td>
+                                        <td width="90">
+                                            08.07.2012&nbsp;
+                                        </td>
+                                        <td width="30">
+                                            18:15
+                                        </td>
+                                        
+                                    </tr>
+                                
+						<tr>
+							<td>
+                                    </td></tr></tbody></table>
+                                </td>
+						</tr>
+					</tbody></table></td>
+				</tr>
+		
+	*/})),
+		
+	"specials.php#list" : $('<tbody>').html( hereDoc(function() {/*!
+			<tr>
+					<td height="20" style="padding-left:5px;">28. Juli </td>
+					<td><a href="specials_02_unicef.php?tab_sel=2&amp;menu_sel=specials">UNICEF Night: Der Verdingbub</a></td>
+				</tr>
+			<tr style="background-color:#EAEAEA;">
+				<td height="20" style="padding-left:5px;">31. Juli </td>
+				<td><a href="specials_03_zff.php?tab_sel=3&amp;menu_sel=specials">Z&uuml;rich Film Festival: Circumstance</a></td>
+			</tr>
+		*/})),
+		
+	"specials.php#tabs" : $('<tbody>').html( hereDoc(function() {/*!
+			<td>
+				<a onmousedown="changeImages('navigation_d_02','images/img_reiter_specials/navigation_d_o_02.jpg');return true" onmouseup="changeImages('navigation_d_02','images/img_reiter_specials/navigation_d_o_02.jpg');return true" onmouseover="changeImages('navigation_d_02','images/img_reiter_specials/navigation_d_o_02.jpg');return true" onmouseout="changeImages('navigation_d_02','images/img_reiter_specials/navigation_d_02.jpg');return true" href="specials_02_unicef.php?tab_sel=2&amp;menu_sel=specials"><img id="navigation_d_02" src="images/img_reiter_specials/navigation_d_02.jpg" name="navigation_d_02" width="87" height="27" alt="" border="0"></a>
+			</td>
+		*/})),
+		
+};
+
+
+describe("extractOrangeCinemaMovieName", function() {
+	var orangeMovieNameMap = {
+		"Vorpremiere: To Rome with Love" 		: "To Rome with Love",
+		"Eröffnungsfilm/Vorpremiere: Starbuck"	: "Starbuck",
+	};
+
+	describe("it to extract a bunch of movieNames", function() {
+		for ( var origMovieName in orangeMovieNameMap ) {
+			var mappedMovieNameMap = orangeMovieNameMap[origMovieName];
+
+			it("should be map " + origMovieName, function() {
+				expect(extractOrangeCinemaMovieName(origMovieName)).toBe(mappedMovieNameMap);
+			});
+		}
+	});
+
+});
 
 var orangecinemaTestDocuments = {
 	"overview.php" : $('<tbody>').html( hereDoc(function() {/*!
@@ -97,8 +305,6 @@ var orangecinemaTestDocuments = {
 		*/})),
 		
 };
-
-
 
 describe("OrangeCinemaProgramHandler", function() {
 	var handler;
@@ -202,7 +408,74 @@ describe("OrangeCinemaSpecialsListHandler", function() {
 	});
 });
 
+var starticketTestDocuments = {
+	"0ShowList.asp page" : $('<tbody>').html( hereDoc(function() {/*!
+		<tr class="bglightgray" onmouseover="this.className='bgverylightgray';" onmouseout="this.className='bglightgray';">
+			<td valign="top" nowrap="">Do 19.07.12/21:30</td><td>&nbsp;</td>
+			<td valign="top"><b>
+				<a href="#" onclick="ShowAltText(53767, 220, 300, 1)"><b>Eröffnungsfilm/Vorpremiere: Starbuck</b></a></b></td>
+			<td>&nbsp;</td>
+			<td valign="top" align="center"><a href="#" onclick="ShowAltText(53767, 220, 300, 1)"><img src="img/OrangecinemaZuerich/ico_search_tick_av_besch.gif" width="20" height="14" alt="" border="0"></a></td>
+			<td valign="top" align="center">&nbsp;</td>
+		</tr>
+		<tr>
+			<td colspan="9"><img src="img/leer.gif" width="1" height="1" alt="" border="0"></td>
+		</tr>
+		<tr class="bglightgray" onmouseover="this.className='bgverylightgray';" onmouseout="this.className='bglightgray';">
+			<td valign="top" nowrap="">Fr 20.07.12/21:35</td><td>&nbsp;</td><td valign="top"><b><a href="0ChooseShow.asp?ShowID=53592&amp;ShowDetails=1">The Artist</a></b></td><td>&nbsp;<span name=""><a href="http://www.imdb.com/find?s=tt&amp;q=">IMDb:&nbsp;<span class="imdbRating">...</span></a></span></td><td valign="top" align="center"><img src="img/OrangecinemaZuerich/ico_search_tick_av.gif" width="20" height="14" alt="" border="0"></td><td valign="top" align="center"><a href="0ChooseShow.asp?ShowID=53592&amp;ShowDetails=1"><img src="img/OrangecinemaZuerich/ico_search_tick_buy.gif" alt="GO" border="0"></a></td>
 
+		</tr>	*/})),
+		
+};
+
+describe("StarticketHandler", function() {
+	var handler;
+
+	beforeEach(function() {
+		handler = new StarticketHandler();
+	});
+
+	describe("getMovieELements", function() {
+		it("should find elements on the 0ShowList.asp page", function() {
+			var movieElements = handler.getMovieElements( starticketTestDocuments["0ShowList.asp page"] );
+
+			expect(movieElements).not.toBe(null);
+			expect(movieElements.length).toBe(2);
+		});
+	});
+	
+	describe("getMovieNameForMovieElement", function() {
+		it("should identify movie names in the list", function() {
+			var testDocument = starticketTestDocuments[ "0ShowList.asp page" ];
+
+			// get the handler to find the movie elements
+			var movieElements = handler.getMovieElements( testDocument );
+			expect(movieElements.length).toBe(2);
+
+			// get the handler to give us the movie names for each element
+			expect(handler.getMovieNameForMovieElement(movieElements[0])).toBe("Starbuck");
+			expect(handler.getMovieNameForMovieElement(movieElements[1])).toBe("The Artist");
+		});
+	});
+	
+	describe("addRatingElements", function() {
+		it("should add elements in the specials list", function() {
+			var testDocument = starticketTestDocuments["0ShowList.asp page"];
+
+			// get the handler to find the movie elements
+			var movieElements = handler.getMovieElements( testDocument );
+
+			// get the handler to add a test element to the 1st movieElement
+			expect(testDocument.html()).not.toMatch( "testelement" );
+			var ratingElement = document.createElement("testelement");
+			handler.addRatingElement( ratingElement, movieElements[0] );
+			expect(testDocument.html()).toMatch( "testelement" );
+		});
+	});
+
+});
+
+// ImdbForSwiss Cinema - URL matching tests
 describe("ImdbForSwissCinema", function() {
 	var handler;
 
@@ -210,7 +483,6 @@ describe("ImdbForSwissCinema", function() {
 		var movieLookup = jasmine.createSpy('movieLookup');
 		handler = new ImdbForSwissCinema(movieLookup);
 	});
-
 
 	describe("CinemanListHandler", function() {
 		it("should match handler for the URL " + "http://www.cineman.ch/en/showtimes/jetzt_im_kino.php?order=cinema", function() {
@@ -239,14 +511,12 @@ describe("ImdbForSwissCinema", function() {
 		
 	});
 	
-	
 	describe("FilmPodiumHandler", function() {
 		it("should match handler for the URL " + "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3", function() {
 			expect(handler.getPageHandler( "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3" ) instanceof FilmPodiumHandler).toBe(true);
 		});
 
 	});
-
 		
 	describe("OrangeCinemaProgramHandler", function() {
 		it("should match handler for the URL " + "http://www.orangecinema.ch/zuerich/overview.php?menu_sel=2010", function() {
@@ -258,13 +528,17 @@ describe("ImdbForSwissCinema", function() {
 		});
 	});
 
-		
 	describe("OrangeCinemaSpecialsListHandler", function() {
-		it("should match handler for the URL http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1", function() {
+		it("should match handler for the URL" + "http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1", function() {
 			expect(handler.getPageHandler( "http://www.orangecinema.ch/zuerich/specials_01.php?menu_sel=specials&tab_sel=1" ) instanceof OrangeCinemaSpecialsListHandler ).toBe(true);
 		});
 	});
 
+	describe("StarticketHandler", function() {
+		it("should match handler for the URL " + "https://www.starticket.ch/orangecinemazuerich/0Showlist.asp", function() {
+			expect(handler.getPageHandler( "https://www.starticket.ch/orangecinemazuerich/0Showlist.asp" ) instanceof StarticketHandler ).toBe(true);
+		});
+	});
 	
 	describe("Non handlers", function() {
 		it("should NOT match a handler for the URL " + "http://www.google.com/", function() {
@@ -277,6 +551,10 @@ describe("ImdbForSwissCinema", function() {
 		
 		it("should NOT match a handler for the URL " + "http://www.orangecinema.ch/staedte.php", function() {
 			expect(handler.getPageHandler( "http://www.orangecinema.ch/staedte.php" )).toBe(null);
+		});
+
+		it("should NOT match a handler for the URL " + "https://www.starticket.ch/orangecinemazuerich/info.asp", function() {
+			expect(handler.getPageHandler( "https://www.starticket.ch/orangecinemazuerich/info.asp" )).toBe(null);
 		});
 	});
 
@@ -318,5 +596,5 @@ describe("ImdbForSwissCinema", function() {
 			expect(handler.getPageHandler( "http://www.cineman.ch/en/" )).toBe(null);
 		});
 	});
-
 });
+

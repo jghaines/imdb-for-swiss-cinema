@@ -3,7 +3,7 @@
 	"version":      				"0.1.0",
 
 	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
-	"homepage_url":					"http://jhaines.name/imdb-for-swiss-cinema/",
+	"homepage_url":					"http://imdb-for-swiss-cinema.jhaines.me/",
 	"icons":						{	"16":	"images/imdb-swiss-16.png",
 										"48":	"images/imdb-swiss-48.png",
 										"128":	"images/imdb-swiss-128.png"
@@ -22,7 +22,9 @@
 								"http://*.orangecinema.ch/*",
 								"http://orangecinema.ch/*",
 								"http://*.filmpodium.ch/*",
-								"http://filmpodium.ch/*"
+								"http://filmpodium.ch/*",
+								"http://www.starticket.ch/*",
+								"https://www.starticket.ch/*"
                             ]
     } ],
 	"converted_from_user_script":	true,

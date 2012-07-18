@@ -17,258 +17,6 @@
 // from cineman.ch to imdb.com
 //
 
-function FilmPodiumHandler () {
-    // <summary>
-    // Implement a PageHandler for finding movie links on orangecinema.ch.
-    //
-    // movie links look like:
-	//	<div class="spielplan_content_filmtitel" style="width:305px;">
-    //  	<table border="0" cellpadding="0" cellspacing="0" width="300">
-    //      	<tbody><tr>
-    //          	<td width="240" valign="top">
-    //					<a id="ctl00_cphContentMain_dlSpielplandaten_ctl00_dlSpielplanFilme_ctl00_lnkFilmDetails" class="inhalt_bold" href="FilmDetails.aspx?t=1&amp;f=12005">A Hard Day's Night</a>
-    //					<br>
-    //					Regie: Richard Lester, GB 1964
-    //				</td>
-    //				<td width="60" valign="top">
-    //					E/d/f<br>
-    //					12 J
-    //				</td>
-    //			</tr>
-    //		</tbody></table>
-    //	</div>
-    // The IMDb links are added 
-    // </summary>
-
-	var loggingOn = true;
-    
-	this.match = function(href) {
-        // <summary>
-        // Whether this class is a handler for the given href
-        //
-        // @parameter href The URL we are on
-        // @returns whether we can handle this page
-        // </summary>
-		
-		return (null != href.match( "filmpodium.ch/.*/ReiheInfo.aspx" ));
-	};
-	
-    
-    this.getMovieElements = function(baseElement) {
-        // <summary>
-        // Find and return all the DOM Elements that are associated with movie references in the given page
-        //
-        // @parameter baseElement the DOM Element (document.body) to search in 
-        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
-        // </summary>
-
-		return $("a[href^='FilmDetails.aspx']");
-    };
-    
-    
-    this.addRatingElement = function( ratingElement, movieElement ) {
-        // <summary>
-        // Adds a given DOM ratingElement relative to the given movieElement.
-        // The function decides on the best positioning of the element for the page layout.
-        // A simple version might be to insert the ratingElement immediately before the movieElement.
-        //
-        // @parameter ratingElement the DOM Element to add
-        // @parameter movieElement an element from the list from this.getMovieElements()
-        // </summary>
-
-		loggingOn?GM_log( "FilmPodiumHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
-		movieElement.parentElement.appendChild( document.createElement("br") );
-		movieElement.parentElement.appendChild( ratingElement );
-
-        // var ratingTableCell = movieElement.parentElement.parentElement.parentElement.nextElementSibling;
-        // ratingTableCell.insertBefore( ratingElement, ratingTableCell.firstChild );
-    };
-    
-    
-    this.getMovieNameForMovieElement = function(movieElement) {
-        // <summary>
-        // Returns the movie name for the given movieElement.
-        // 
-        // @parameter movieElement an element from the list from this.getMovieElements()
-        // @returns The name of the movie, optionally with " (release-year)" appended 
-        // </summary>
-
-        var movieName = movieElement.text;
-        
-		// add year
-		var matchYear = movieElement.parentElement.textContent.match( /Regie:.*\s(19\d\d|20\d\d)/ ); // eg. Regie: Richard Lester, GB 1964
-		if ( null != matchYear ) {
-			movieName = movieName + " (" + matchYear[1] + ")"; // first group contains year
-		}
-
-        return movieName;
-    };
-};
-
-
-function extractOrangeCinemaMovieName( movieName ) {
-	movieName = movieName.replace( /^\s*[^\w]+/, "" ); // strip leading non-word (left angle quote)
-	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces
-	movieName = movieName.replace( /^.+Night\s*\:\s*/, "" ); // strip special Nights (Orange, ZKB etc)
-	movieName = movieName.replace( /^Vorpremiere\s*\:\s*/, "" ); // other prefixes
-	movieName = movieName.replace( /^Deutschschweizer Erstauff.hrung\s*\:\s*/, "" );
-	movieName = movieName.replace( /^Z.rich Film Festival\s*\:\s*/, "" );
-	movieName = movieName.replace( /^Live orchestriert\s*\:\s*Charlie Chaplin\s*[-\:]*\s*/, "" );
-	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces again
-	movieName = movieName.replace( /\s*[^\w]?\s*$/, ""); // strip trailing non-word (right angle quote)
-
-	return movieName;
-}
-
-function OrangeCinemaProgramHandler () {
-    // <summary>
-    // Implement a PageHandler for finding movie links on orangecinema.ch.
-    //
-    // The IMDb links are added 
-    // </summary>
-
-	var loggingOn = true;
-    
-	this.match = function(href) {
-        // <summary>
-        // Whether this class is a handler for the given href
-        //
-        // @parameter href The URL we are on
-        // @returns whether we can handle this page
-        // </summary>
-		
-		return (null != href.match( "orangecinema.ch/.*/overview.php" ));
-	};
-	
-    
-    this.getMovieElements = function(baseElement) {
-        // <summary>
-        // Find and return all the DOM Elements that are associated with movie references in the given page
-        //
-        // This cineman.ch version looks for @class=listingtitle elements
-        //
-        // @parameter baseElement the DOM Element (document.body) to search in 
-        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
-        // </summary>
-
-		return $(baseElement).find("a[href^='event.php']");
-    };
-    
-    
-    this.addRatingElement = function( ratingElement, movieElement ) {
-        // <summary>
-        // Adds a given DOM ratingElement relative to the given movieElement.
-        // The function decides on the best positioning of the element for the page layout.
-        // A simple version might be to insert the ratingElement immediately before the movieElement.
-        //
-        // This version adds the element to the adjacent TD table cell.
-        //
-        // @parameter ratingElement the DOM Element to add
-        // @parameter movieElement an element from the list from this.getMovieElements()
-        // </summary>
-
-		loggingOn?GM_log( "OrangeCinemaHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
-		$( movieElement ).parents("tr:first").children("td:last").prev().append( ratingElement );
-
-        // var ratingTableCell = movieElement.parentElement.parentElement.parentElement.nextElementSibling;
-        // ratingTableCell.insertBefore( ratingElement, ratingTableCell.firstChild );
-    };
-    
-    
-    this.getMovieNameForMovieElement = function(movieElement) {
-        // <summary>
-        // Returns the movie name for the given movieElement.
-        // 
-        // @parameter movieElement an element from the list from this.getMovieElements()
-        // @returns The name of the movie, optionally with " (release-year)" appended 
-        // </summary>
-
-        var movieName = extractOrangeCinemaMovieName( movieElement.text );
-
-		// add year
-		var movieDescription = $( movieElement).parents("tr:first").next().text();
-		var matchYear = movieDescription.match( /\s+(19[0-9]{2}|20[0-9]{2}),/ ); // e.g. " 2012,"
-		if ( null != matchYear ) {
-			movieName = movieName + " (" + matchYear[1] + ")"; // first group contains year
-		}
-		
-        return movieName;
-    };
-};
-
-
-function OrangeCinemaSpecialsListHandler () {
-    // <summary>
-    // Implement a PageHandler for finding movie links on the specials list page on orangecinema.ch.
-    //
-	//
-    // The IMDb links are added 
-    // </summary>
-
-	var loggingOn = true;
-    
-	this.match = function(href) {
-        // <summary>
-        // Whether this class is a handler for the given href
-        //
-        // @parameter href The URL we are on
-        // @returns whether we can handle this page
-        // </summary>
-		
-		return (null != href.match( "orangecinema.ch/.*/specials_01.php" ));
-	};
-	
-    
-    this.getMovieElements = function(baseElement) {
-        // <summary>
-        // Find and return all the DOM Elements that are associated with movie references in the given page
-        //
-        // This cineman.ch version looks for @class=listingtitle elements
-        //
-        // @parameter baseElement the DOM Element (document.body) to search in 
-        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
-        // </summary>
-
-		var elements = $(baseElement).find("a[href^='specials']");
-		elements = elements.filter(function () { return /specials_(?!01).*.php/.test(this.href); }); // not specials_01 links
-		elements = elements.filter(function () { return /\w+/.test(this.innerText); }); // not tab links (empty, IMG links)
-		return elements;
-    };
-    
-    
-    this.addRatingElement = function( ratingElement, movieElement ) {
-        // <summary>
-        // Adds a given DOM ratingElement relative to the given movieElement.
-        // The function decides on the best positioning of the element for the page layout.
-        // A simple version might be to insert the ratingElement immediately before the movieElement.
-        //
-        // This version adds the element to the adjacent TD table cell.
-        //
-        // @parameter ratingElement the DOM Element to add
-        // @parameter movieElement an element from the list from this.getMovieElements()
-        // </summary>
-
-		loggingOn?GM_log( "OrangeCinemaSpecialsHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
-		var containingRow = $( movieElement ).parents("tr:first");
-		var newTd = document.createElement("td");
-		newTd.appendChild(ratingElement);
-		containingRow.append(newTd);
-    };
-    
-    
-    this.getMovieNameForMovieElement = function(movieElement) {
-        // <summary>
-        // Returns the movie name for the given movieElement.
-        // 
-        // @parameter movieElement an element from the list from this.getMovieElements()
-        // @returns The name of the movie, optionally with " (release-year)" appended 
-        // </summary>
-
-        return extractOrangeCinemaMovieName( movieElement.text );
-    };
-};
-
-
 function CinemanListHandler () {
     // <summary>
     // Implement a PageHandler for finding movie links on a www.cineman.ch list page
@@ -360,7 +108,6 @@ function CinemanListHandler () {
     };
 };
 
-
 function CinemanMovieHandler () {
     // <summary>
     // Implement a PageHandler for finding movie links on a www.cineman.ch movie page
@@ -445,6 +192,289 @@ function CinemanMovieHandler () {
     };
 };
 
+function FilmPodiumHandler () {
+    // <summary>
+    // Implement a PageHandler for finding movie links on filmpodium.ch.
+    // </summary>
+
+	var loggingOn = true;
+    
+	this.match = function(href) {
+        // <summary>
+        // Whether this class is a handler for the given href
+        //
+        // @parameter href The URL we are on
+        // @returns whether we can handle this page
+        // </summary>
+		
+		return (null != href.match( "filmpodium.ch/.*/ReiheInfo.aspx" ));
+	};
+	
+    
+    this.getMovieElements = function(baseElement) {
+        // <summary>
+        // Find and return all the DOM Elements that are associated with movie references in the given page
+        //
+        // @parameter baseElement the DOM Element (document.body) to search in 
+        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+        // </summary>
+
+		return $("a[href^='FilmDetails.aspx']", baseElement);
+    };
+    
+    
+    this.addRatingElement = function( ratingElement, movieElement ) {
+        // <summary>
+        // Adds a given DOM ratingElement relative to the given movieElement.
+        //
+        // @parameter ratingElement the DOM Element to add
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // </summary>
+
+		loggingOn?GM_log( "FilmPodiumHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
+		movieElement.parentElement.appendChild( document.createElement("br") );
+		movieElement.parentElement.appendChild( ratingElement );
+
+        // var ratingTableCell = movieElement.parentElement.parentElement.parentElement.nextElementSibling;
+        // ratingTableCell.insertBefore( ratingElement, ratingTableCell.firstChild );
+    };
+    
+    
+    this.getMovieNameForMovieElement = function(movieElement) {
+        // <summary>
+        // Returns the movie name for the given movieElement.
+        // 
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // @returns The name of the movie, optionally with " (release-year)" appended 
+        // </summary>
+
+        var movieName = movieElement.text;
+        
+		// add year
+		var matchYear = movieElement.parentElement.textContent.match( /Regie:.*\s(19\d\d|20\d\d)/ ); // eg. Regie: Richard Lester, GB 1964
+		if ( null != matchYear ) {
+			movieName = movieName + " (" + matchYear[1] + ")"; // first group contains year
+		}
+
+        return movieName;
+    };
+};
+
+function extractOrangeCinemaMovieName( movieName ) {
+	movieName = movieName.replace( /^\s*[^\w]+/, "" ); // strip leading non-word (left angle quote)
+	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces
+	movieName = movieName.replace( /^.+Night\s*\:\s*/, "" ); // strip special Nights (Orange, ZKB etc)
+	movieName = movieName.replace( /^.*Vorpremiere\s*\:\s*/, "" ); // other prefixes
+	movieName = movieName.replace( /^Deutschschweizer Erstauff.hrung\s*\:\s*/, "" );
+	movieName = movieName.replace( /^Z.rich Film Festival\s*\:\s*/, "" );
+	movieName = movieName.replace( /^Live orchestriert\s*\:\s*Charlie Chaplin\s*[-\:]*\s*/, "" );
+	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces again
+	movieName = movieName.replace( /\s*[^\w]?\s*$/, ""); // strip trailing non-word (right angle quote)
+
+	return movieName;
+};
+
+function OrangeCinemaProgramHandler () {
+    // <summary>
+    // Implement a PageHandler for finding movie links on orangecinema.ch.
+    //
+    // The IMDb links are added 
+    // </summary>
+
+	var loggingOn = true;
+    
+	this.match = function(href) {
+        // <summary>
+        // Whether this class is a handler for the given href
+        //
+        // @parameter href The URL we are on
+        // @returns whether we can handle this page
+        // </summary>
+		
+		return (null != href.match( "orangecinema.ch/.*/overview.php" ));
+	};
+	
+    
+    this.getMovieElements = function(baseElement) {
+        // <summary>
+        // Find and return all the DOM Elements that are associated with movie references in the given page
+        //
+        // This cineman.ch version looks for @class=listingtitle elements
+        //
+        // @parameter baseElement the DOM Element (document.body) to search in 
+        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+        // </summary>
+
+		return $(baseElement).find("a[href^='event.php']");
+    };
+    
+    
+    this.addRatingElement = function( ratingElement, movieElement ) {
+        // <summary>
+        // Adds a given DOM ratingElement relative to the given movieElement.
+        // The function decides on the best positioning of the element for the page layout.
+        // A simple version might be to insert the ratingElement immediately before the movieElement.
+        //
+        // This version adds the element to the adjacent TD table cell.
+        //
+        // @parameter ratingElement the DOM Element to add
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // </summary>
+
+		loggingOn?GM_log( "OrangeCinemaHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
+		$( movieElement ).parents("tr:first").children("td:last").prev().append( ratingElement );
+
+        // var ratingTableCell = movieElement.parentElement.parentElement.parentElement.nextElementSibling;
+        // ratingTableCell.insertBefore( ratingElement, ratingTableCell.firstChild );
+    };
+    
+    
+    this.getMovieNameForMovieElement = function(movieElement) {
+        // <summary>
+        // Returns the movie name for the given movieElement.
+        // 
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // @returns The name of the movie, optionally with " (release-year)" appended 
+        // </summary>
+
+        var movieName = extractOrangeCinemaMovieName( movieElement.text );
+
+		// add year
+		var movieDescription = $( movieElement).parents("tr:first").next().text();
+		var matchYear = movieDescription.match( /\s+(19[0-9]{2}|20[0-9]{2}),/ ); // e.g. " 2012,"
+		if ( null != matchYear ) {
+			movieName = movieName + " (" + matchYear[1] + ")"; // first group contains year
+		}
+		
+        return movieName;
+    };
+};
+
+function OrangeCinemaSpecialsListHandler () {
+    // <summary>
+    // Implement a PageHandler for finding movie links on the specials list page on orangecinema.ch.
+    //
+	//
+    // The IMDb links are added 
+    // </summary>
+
+	var loggingOn = true;
+    
+	this.match = function(href) {
+        // <summary>
+        // Whether this class is a handler for the given href
+        //
+        // @parameter href The URL we are on
+        // @returns whether we can handle this page
+        // </summary>
+		
+		return (null != href.match( "orangecinema.ch/.*/specials_01.php" ));
+	};
+	
+    this.getMovieElements = function(baseElement) {
+        // <summary>
+        // Find and return all the DOM Elements that are associated with movie references in the given page
+        //
+        // This cineman.ch version looks for @class=listingtitle elements
+        //
+        // @parameter baseElement the DOM Element (document.body) to search in 
+        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+        // </summary>
+
+		var elements = $(baseElement).find("a[href^='specials']");
+		elements = elements.filter(function () { return /specials_(?!01).*.php/.test(this.href); }); // not specials_01 links
+		elements = elements.filter(function () { return /\w+/.test(this.innerText); }); // not tab links (empty, IMG links)
+		return elements;
+    };
+    
+    this.addRatingElement = function( ratingElement, movieElement ) {
+        // <summary>
+        // Adds a given DOM ratingElement relative to the given movieElement.
+        // The function decides on the best positioning of the element for the page layout.
+        // A simple version might be to insert the ratingElement immediately before the movieElement.
+        //
+        // This version adds the element to the adjacent TD table cell.
+        //
+        // @parameter ratingElement the DOM Element to add
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // </summary>
+
+		loggingOn?GM_log( "OrangeCinemaSpecialsHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
+		var containingRow = $( movieElement ).parents("tr:first");
+		var newTd = document.createElement("td");
+		newTd.appendChild(ratingElement);
+		containingRow.append(newTd);
+    };
+    
+    this.getMovieNameForMovieElement = function(movieElement) {
+        // <summary>
+        // Returns the movie name for the given movieElement.
+        // 
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // @returns The name of the movie, optionally with " (release-year)" appended 
+        // </summary>
+
+        return extractOrangeCinemaMovieName( movieElement.text );
+    };
+};
+
+function StarticketHandler () {
+    // <summary>
+    // Implement a PageHandler for finding movie links on a www.starticket.ch movie page
+    // </summary>
+
+	var loggingOn = true;
+    
+	this.match = function(href) {
+        // <summary>
+        // Whether this class is a handler for the given href
+        //
+        // @parameter href The URL we are on
+        // @returns whether we can handle this page
+        // </summary>
+		
+		return ( null != href.match( "starticket.ch/orangecinema.*/0Showlist.asp.*" ));
+	};
+    
+    this.getMovieElements = function(baseElement) {
+        // <summary>
+        // Find and return all the DOM Elements that are associated with movie references in the given page
+        //
+        // @parameter baseElement the DOM Element (document.body) to search in 
+        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+        // </summary>
+
+		return $( "tr[class=bglightgray][onmouseover]", baseElement );
+    };
+    
+    this.addRatingElement = function( ratingElement, movieElement ) {
+        // <summary>
+        // Adds a given DOM ratingElement relative to the given movieElement.
+        //
+        // @parameter ratingElement the DOM Element to add
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // </summary>
+
+		loggingOn?GM_log( "StarticketHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
+		$("td:nth-child(4)", movieElement).append(ratingElement);
+    };
+    
+    this.getMovieNameForMovieElement = function(movieElement) {
+        // <summary>
+        // Returns the movie name for the given movieElement.
+        // 
+        // This cineman.ch version is able to extract the release year and this is appended.
+        //
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // @returns The name of the movie, optionally with " (release-year)" appended 
+        // </summary>
+
+        var movieName = $( "a:first", movieElement).text();
+        movieName = extractOrangeCinemaMovieName( movieName );
+   		loggingOn?GM_log( "StarticketHandler.getMovieNameForMovieElement( " + movieElement + " )=" + movieName ):void(0); 
+        return movieName;
+    };
+};
 
 // function to be embedded into ImdbInfo objects
 function getImdbUrl() {
@@ -456,7 +486,6 @@ function getImdbUrl() {
 	
 	return "http://www.imdb.com/title/" + this.ID + "/";       
 };
-
 
 function ImdbInfo () {
     // <summary>
@@ -470,7 +499,6 @@ function ImdbInfo () {
     
     this.getUrl = getImdbUrl;	// method to return IMDB URL
 };
-
 
 function ImdbComMovieLookup () {
     // <summary>
@@ -591,7 +619,6 @@ function ImdbComMovieLookup () {
 	}
 }
 
-
 function ImdbapiComMovieLookup () {
     // <summary>
     // A class that uses http://www.imdb.apicom/ to lookup movie info
@@ -670,8 +697,7 @@ function ImdbapiComMovieLookup () {
 	}
 }
 
-
-function ImdbMarkup ( pageHandler, movieLookupHandler ) {
+function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
     // <summary>
     // Markup a page with IMDb ratings.
     //
@@ -679,25 +705,14 @@ function ImdbMarkup ( pageHandler, movieLookupHandler ) {
     //
     // @parameter pageHandler An object that implements the website-specific methods that will find the movie elements in the HTML page.
     // @parameter movieLookupHandler An object that implements the methods that will lookup movie details from an external website.
+	// @parameter cache (optional) A hash for caching movienames and imdbInfo objects
     // <summary>
     this.pageHandler = pageHandler;
 	this.movieLookupHandler = movieLookupHandler;
+    this.cache = cache;
     
     var loggingOn = true;
     
-	
-	this.supportsLocalStorage = function() {
-		// <summary>
-		// Return whether the browser supports HTML 5 local storage
-		// </summary>
-		
-		try {
-			return 'localStorage' in window && window['localStorage'] !== null;
-		} catch (e) {
-			return false;
-		}
-	}
-	
 	
 	this.putImdbInfoToCache = function( movieName, imdbInfo ) {
 		// <summary>
@@ -711,9 +726,9 @@ function ImdbMarkup ( pageHandler, movieLookupHandler ) {
 
         loggingOn?GM_log("ImdbMarkup.putImdbInfoToCache( " + movieName + ", [" + typeof(imdbInfo) + "]" + imdbInfo + " )"  ):void(0);
 
-		if ( this.supportsLocalStorage() ) {
-			localStorage["moviename." + movieName] = imdbInfo.ID;
-			localStorage["imdbId." + imdbInfo.ID] = JSON.stringify( imdbInfo );
+		if ( null != cache ) {
+			cache["moviename." + movieName] = imdbInfo.ID;
+			cache["imdbId." + imdbInfo.ID] = JSON.stringify( imdbInfo );
 		}
 	}
 	
@@ -728,11 +743,11 @@ function ImdbMarkup ( pageHandler, movieLookupHandler ) {
 
         loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache( '" + movieName + "' )"  ):void(0);
 
-		if ( this.supportsLocalStorage() ) {
-			var imdbId = localStorage["moviename." + movieName];
+		if ( null != cache ) {
+			var imdbId = cache["moviename." + movieName];
 			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - localStorage[moviename." + movieName  + "]=" + imdbId  ):void(0);
 
-			var imdbInfoString  = localStorage["imdbId." + imdbId]
+			var imdbInfoString  = cache["imdbId." + imdbId]
 			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - localStorage[imdbId." + imdbId  + "]=" + imdbInfoString  ):void(0);
 
 			if ( null != imdbInfoString ) {
@@ -868,7 +883,6 @@ function ImdbMarkup ( pageHandler, movieLookupHandler ) {
 	}
 };    
 
-
 function getObjectClass(obj) {
     // <summary>
     // Returns the class name of the argument or undefined if
@@ -898,6 +912,19 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 
     var loggingOn = true;
 
+	this.supportsLocalStorage = function() {
+		// <summary>
+		// Return whether the browser supports HTML 5 local storage
+		// </summary>
+		
+		try {
+			return 'localStorage' in window && window['localStorage'] !== null;
+		} catch (e) {
+			return false;
+		}
+	}
+	
+	
 	// all the page handlers we know
 	var pageHandlers = [
 		new CinemanMovieHandler(),
@@ -905,6 +932,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		new OrangeCinemaProgramHandler(),
 		new OrangeCinemaSpecialsListHandler(),
 		new FilmPodiumHandler(),
+		new StarticketHandler(),
 	];
 
 
@@ -915,9 +943,10 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		// @param href The URL of the page
 		// @return The pageHandler object, or null if none found
 		// </summary> 
+		loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + pageHandlers.length + " handlers" ):void(0); 
 		for ( var i=0; i < pageHandlers.length; ++i ) {
 			var pageHandler = pageHandlers[i];
-			loggingOn?GM_log( "ImdbForSwissCinema.exec() trying " + getObjectClass(pageHandler) + " on:" + href ):void(0); 
+			loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + getObjectClass(pageHandler) + " on:" + href ):void(0); 
 			if ( pageHandler.match( href ) ) {
 				return pageHandler;
 			}
@@ -936,7 +965,9 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		var pageHandler = this.getPageHandler( href );
 		if ( null != pageHandler ) {
 			loggingOn?GM_log( "ImdbForSwissCinema.exec() success!" ):void(0); 
-			var pageMarkup = new ImdbMarkup( pageHandler, movieLookupHandler );
+			var cache = ( this.supportsLocalStorage() ? localStorage : null );
+			
+			var pageMarkup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
 			pageMarkup.doMarkup( baseElement ); 
 		}
 	}

@@ -727,7 +727,10 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
         loggingOn?GM_log("ImdbMarkup.putImdbInfoToCache( " + movieName + ", [" + typeof(imdbInfo) + "]" + imdbInfo + " )"  ):void(0);
 
 		if ( null != cache ) {
-			cache["moviename." + movieName] = imdbInfo.ID;
+			cache["moviename." + movieName] = imdbInfo.ID; // movie name on page
+			cache["moviename." + imdbInfo.Title] = imdbInfo.ID; // official IMDB movie name
+			cache["moviename." + movieName + " (" + imdbInfo.Year + ")" ] = imdbInfo.ID; // movie name on page with year
+			cache["moviename." + imdbInfo.Title + " (" + imdbInfo.Year + ")" ] = imdbInfo.ID; // official IMDB movie name with year
 			cache["imdbId." + imdbInfo.ID] = JSON.stringify( imdbInfo );
 		}
 	}

@@ -43,16 +43,20 @@ describe("ImdbComMovieLookup", function() {
 });
 
 describe("ImdbMarkup", function() {
+	var imdbInfoId = "tt000"
 
 	var pageHandler;
 	var movieLookupHandler;
 	var cache;
 
-	function DummyMovieHandler() {
-		this.loadImdbInfoForMovieName = function(movieName) {
+	function DummyMovieLookupHandler() {
+		this.loadImdbInfoForMovieName = function(movieName, onloadImdbInfo) {
 			var imdbInfo = new ImdbInfo();
 			imdbInfo.Title = movieName;
-			return imdbInfo;
+			imdbInfo.Year = "1600";
+			imdbInfo.ID = imdbInfoId;
+			imdbInfo.getUrl = getImdbUrl;
+			onloadImdbInfo( movieName, imdbInfo );
 		}
 		
 		this.imdbSearchUrl = function(movieName) {
@@ -62,7 +66,9 @@ describe("ImdbMarkup", function() {
 	
 	beforeEach(function() {
 		pageHandler = new CinemanListHandler();
-		movieLookupHandler = new DummyMovieHandler();
+		movieLookupHandler = new DummyMovieLookupHandler();
+		spyOn(movieLookupHandler, 'loadImdbInfoForMovieName').andCallThrough();
+		
 		cache = [];
 	});
 
@@ -80,22 +86,35 @@ describe("ImdbMarkup", function() {
 		expect(pageHandler.getMovieElements).toHaveBeenCalledWith(baseElement);
 		expect(pageHandler.getMovieNameForMovieElement).not.toHaveBeenCalled();
 	});
-///////////////////
+	
 	it("should be able to run on a document with a single matching element", function() {
 		var elements = [ document.createElement("element") ];
+		var movieName = "myMovie";
 
 		spyOn(pageHandler, 'match').andReturn(true);
 		spyOn(pageHandler, 'addRatingElement');
-		spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn("movieName");
+		spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn( movieName );
 		spyOn(pageHandler, 'getMovieElements').andReturn( elements );
 
 		// do the markup
 		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
-		var baseElement = jasmine.createSpyObj('baseElement', ['nomethods']);
 		markup.doMarkup( elements[0] );
 		
+		// pageHandler should get invoked to parse and markup the page
 		expect(pageHandler.getMovieElements).toHaveBeenCalled();
 		expect(pageHandler.getMovieNameForMovieElement).toHaveBeenCalledWith( elements[0] );
+		expect(pageHandler.addRatingElement).toHaveBeenCalledWith( jasmine.any(Object), elements[0] );
+
+		// movieLookupHandler should get invoked to find the movie info
+		expect(movieLookupHandler.loadImdbInfoForMovieName).toHaveBeenCalledWith( movieName, jasmine.any(Function) );
+
+		// check the cache
+		expect(Object.keys(cache).length).toBe(3);
+		expect(cache['moviename.' + movieName]).toBe( imdbInfoId ); // original movie name
+		expect(cache['moviename.' + movieName + ' (1600)' ]).toBe( imdbInfoId ); // movie name with year
+		expect(cache['imdbId.' + imdbInfoId]).toMatch( movieName ); // the movie object has the movieName
+		expect(cache['imdbId.' + imdbInfoId]).toMatch( imdbInfoId ); // and the id (fuzzy checking)
+		
 	});
 });
 

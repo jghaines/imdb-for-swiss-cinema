@@ -131,9 +131,10 @@ describe("ImdbMarkup", function() {
 
 		// pre-populate the cache
 		cache['moviename.' + movieName ] =  imdbInfoId;
+		cache['moviename.' + movieName + ' (' + movieYear + ')'] =  imdbInfoId;
 		cache['imdbId.tt101'] = imdbObjectString;
 		// check the cache
-		expect(Object.keys(cache).length).toBe(2);
+		expect(Object.keys(cache).length).toBe(3);
 		
 		// do the markup
 		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
@@ -148,7 +149,40 @@ describe("ImdbMarkup", function() {
 		expect(movieLookupHandler.loadImdbInfoForMovieName).not.toHaveBeenCalled();
 
 		// cache should be same size
-		expect(Object.keys(cache).length).toBe(2);
+		expect(Object.keys(cache).length).toBe(3);
+
+	});
+	
+	it("should be able to match a single cached element with a year", function() {
+		var elements = [ document.createElement("element") ];
+
+		// pageHandler will 'find' the moviename with the year
+		spyOn(pageHandler, 'match').andReturn(true);
+		spyOn(pageHandler, 'addRatingElement');
+		spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn( movieName + ' (' + movieYear + ')' );
+		spyOn(pageHandler, 'getMovieElements').andReturn( elements );
+
+		// pre-populate the cache
+		cache['moviename.' + movieName ] =  imdbInfoId;
+		cache['moviename.' + movieName + ' (' + movieYear + ')'] =  imdbInfoId;
+		cache['imdbId.tt101'] = imdbObjectString;
+		// check the cache
+		expect(Object.keys(cache).length).toBe(3);
+		
+		// do the markup
+		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
+		markup.doMarkup( elements[0] );
+		
+		// pageHandler should get invoked to parse and markup the page
+		expect(pageHandler.getMovieElements).toHaveBeenCalled();
+		expect(pageHandler.getMovieNameForMovieElement).toHaveBeenCalledWith( elements[0] );
+		expect(pageHandler.addRatingElement).toHaveBeenCalledWith( jasmine.any(Object), elements[0] );
+
+		// shouldn't need to invoke the movieLookup handler - it should be cached
+		expect(movieLookupHandler.loadImdbInfoForMovieName).not.toHaveBeenCalled();
+
+		// cache should be same size
+		expect(Object.keys(cache).length).toBe(3);
 
 	});
 });

@@ -43,7 +43,11 @@ describe("ImdbComMovieLookup", function() {
 });
 
 describe("ImdbMarkup", function() {
-	var imdbInfoId = "tt000"
+	var imdbObjectString = '{"Title":"My Movie","Year":"1600","imdbRating":"7.0","imdbID":"tt101"}';
+	var imdbInfoId = "tt101";
+	var movieName = "My Movie";
+	var movieYear = "1600"
+
 
 	var pageHandler;
 	var movieLookupHandler;
@@ -51,9 +55,9 @@ describe("ImdbMarkup", function() {
 
 	function DummyMovieLookupHandler() {
 		this.loadImdbInfoForMovieName = function(movieName, onloadImdbInfo) {
-			var imdbInfo = new ImdbInfo();
+			var imdbInfo = JSON.parse(imdbObjectString);
 			imdbInfo.Title = movieName;
-			imdbInfo.Year = "1600";
+			imdbInfo.Year = movieYear;
 			imdbInfo.ID = imdbInfoId;
 			imdbInfo.getUrl = getImdbUrl;
 			onloadImdbInfo( movieName, imdbInfo );
@@ -115,6 +119,37 @@ describe("ImdbMarkup", function() {
 		expect(cache['imdbId.' + imdbInfoId]).toMatch( movieName ); // the movie object has the movieName
 		expect(cache['imdbId.' + imdbInfoId]).toMatch( imdbInfoId ); // and the id (fuzzy checking)
 		
+	});
+	
+	it("should be able to match a single cached element", function() {
+		var elements = [ document.createElement("element") ];
+
+		spyOn(pageHandler, 'match').andReturn(true);
+		spyOn(pageHandler, 'addRatingElement');
+		spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn( movieName );
+		spyOn(pageHandler, 'getMovieElements').andReturn( elements );
+
+		// pre-populate the cache
+		cache['moviename.' + movieName ] =  imdbInfoId;
+		cache['imdbId.tt101'] = imdbObjectString;
+		// check the cache
+		expect(Object.keys(cache).length).toBe(2);
+		
+		// do the markup
+		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
+		markup.doMarkup( elements[0] );
+		
+		// pageHandler should get invoked to parse and markup the page
+		expect(pageHandler.getMovieElements).toHaveBeenCalled();
+		expect(pageHandler.getMovieNameForMovieElement).toHaveBeenCalledWith( elements[0] );
+		expect(pageHandler.addRatingElement).toHaveBeenCalledWith( jasmine.any(Object), elements[0] );
+
+		// shouldn't need to invoke the movieLookup handler - it should be cached
+		expect(movieLookupHandler.loadImdbInfoForMovieName).not.toHaveBeenCalled();
+
+		// cache should be same size
+		expect(Object.keys(cache).length).toBe(2);
+
 	});
 });
 

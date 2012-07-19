@@ -738,7 +738,7 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 	
 	this.getImdbInfoFromCache = function( movieName ) {
 		// <summary>
-		// Try to find the given movie in the local settings cache and return the imdbInfo object if found.
+		// Try to find the given movie in the cache and return the imdbInfo object if found.
 		//
         // @parameter movieName The movie name as on the original page
         // @returns An imdbInfo object, or 'undefined' if not found in the cache
@@ -748,10 +748,10 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 
 		if ( null != cache ) {
 			var imdbId = cache["moviename." + movieName];
-			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - localStorage[moviename." + movieName  + "]=" + imdbId  ):void(0);
+			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[moviename." + movieName  + "]=" + imdbId  ):void(0);
 
 			var imdbInfoString  = cache["imdbId." + imdbId]
-			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - localStorage[imdbId." + imdbId  + "]=" + imdbInfoString  ):void(0);
+			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[imdbId." + imdbId  + "]=" + imdbInfoString  ):void(0);
 
 			if ( null != imdbInfoString ) {
 

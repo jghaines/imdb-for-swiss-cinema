@@ -2,15 +2,10 @@
 // @name			IMDB for Swiss cinema
 // @namespace		http://www.jhaines.name/imdb-for-swiss-cinema/
 // @author			Jason Haines
-// @version			0.7
+// @version			0.0
 // @description		Add IMDb links and ratings to Swiss cinema sites.
 // ==/UserScript==                                                              
 
-
-// Change log
-//
-// v0.6.1 IMDB changed their ratings element - regex update
-// v0.7 expanded support to other sites
 
 //
 // Chrome prefers the @match declarations, but this prevents cross-origin requests (http://code.google.com/chrome/extensions/xhr.html)
@@ -705,7 +700,7 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
     //
     // @parameter pageHandler An object that implements the website-specific methods that will find the movie elements in the HTML page.
     // @parameter movieLookupHandler An object that implements the methods that will lookup movie details from an external website.
-	// @parameter cache (optional) A hash for caching movienames and imdbInfo objects
+	// @parameter cache (optional) A Map object for caching movienames and imdbInfo objects
     // <summary>
     this.pageHandler = pageHandler;
 	this.movieLookupHandler = movieLookupHandler;
@@ -727,11 +722,11 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
         loggingOn?GM_log("ImdbMarkup.putImdbInfoToCache( " + movieName + ", [" + typeof(imdbInfo) + "]" + imdbInfo + " )"  ):void(0);
 
 		if ( null != cache ) {
-			cache["moviename." + movieName] = imdbInfo.ID; // movie name on page
-			cache["moviename." + imdbInfo.Title] = imdbInfo.ID; // official IMDB movie name
-			cache["moviename." + movieName + " (" + imdbInfo.Year + ")" ] = imdbInfo.ID; // movie name on page with year
-			cache["moviename." + imdbInfo.Title + " (" + imdbInfo.Year + ")" ] = imdbInfo.ID; // official IMDB movie name with year
-			cache["imdbId." + imdbInfo.ID] = JSON.stringify( imdbInfo );
+			cache.put( "moviename." + movieName, imdbInfo.ID); // movie name on page
+			cache.put( "moviename." + imdbInfo.Title, imdbInfo.ID); // official IMDB movie name
+			cache.put( "moviename." + movieName + " (" + imdbInfo.Year + ")", imdbInfo.ID); // movie name on page with year
+			cache.put( "moviename." + imdbInfo.Title + " (" + imdbInfo.Year + ")", imdbInfo.ID); // official IMDB movie name with year
+			cache.put( "imdbId." + imdbInfo.ID, JSON.stringify( imdbInfo ));
 		}
 	}
 	
@@ -747,10 +742,10 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
         loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache( '" + movieName + "' )"  ):void(0);
 
 		if ( null != cache ) {
-			var imdbId = cache["moviename." + movieName];
+			var imdbId = cache.get("moviename." + movieName);
 			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[moviename." + movieName  + "]=" + imdbId  ):void(0);
 
-			var imdbInfoString  = cache["imdbId." + imdbId]
+			var imdbInfoString  = cache.get("imdbId." + imdbId);
 			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[imdbId." + imdbId  + "]=" + imdbInfoString  ):void(0);
 
 			if ( null != imdbInfoString ) {
@@ -886,6 +881,30 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 	}
 };    
 
+function ArrayWrapperMap( array ) {
+	// <summary>
+	// Wrap an associative array in class with convenience methods.
+	// </summary>
+	this.array = array;
+	
+	this.get = function( key ) {
+		return array[key];
+	}
+	
+	this.put = function( key, value ) {
+		array[key] = value;
+	}
+	
+	this.containsKey = function( key ) {
+		return ( key in array );
+	}
+	
+	this.length = function( key ) {
+		return Object.keys(array).length;
+	}
+	
+};
+
 function getObjectClass(obj) {
     // <summary>
     // Returns the class name of the argument or undefined if
@@ -968,7 +987,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		var pageHandler = this.getPageHandler( href );
 		if ( null != pageHandler ) {
 			loggingOn?GM_log( "ImdbForSwissCinema.exec() success!" ):void(0); 
-			var cache = ( this.supportsLocalStorage() ? localStorage : null );
+			var cache = ( this.supportsLocalStorage() ? new ArrayWrapperMap(localStorage) : null );
 			
 			var pageMarkup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
 			pageMarkup.doMarkup( baseElement ); 

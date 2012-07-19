@@ -5,6 +5,22 @@ function hereDoc(f) {
 			replace(/\*\/[^\/]+$/, '');
 }
 
+describe("ArrayWrapperMap", function() {
+
+	it("should be able to put and get", function() {
+		var array = [];
+		var map = new ArrayWrapperMap( array );
+		
+		expect(map.length()).toBe(0);
+		map.put( "keyA", "value" );		
+		expect(map.length()).toBe(1);
+		expect(map.get("keyA")).toBe( "value" );		
+	});
+
+});
+
+
+
 // Imdb class tests
 describe("ImdbComMovieLookup", function() {
 	var lookup;
@@ -73,7 +89,7 @@ describe("ImdbMarkup", function() {
 		movieLookupHandler = new DummyMovieLookupHandler();
 		spyOn(movieLookupHandler, 'loadImdbInfoForMovieName').andCallThrough();
 		
-		cache = [];
+		cache = new ArrayWrapperMap([]);
 	});
 
 	it("should be able to run on a document with no matching elements", function() {
@@ -113,11 +129,11 @@ describe("ImdbMarkup", function() {
 		expect(movieLookupHandler.loadImdbInfoForMovieName).toHaveBeenCalledWith( movieName, jasmine.any(Function) );
 
 		// check the cache
-		expect(Object.keys(cache).length).toBe(3);
-		expect(cache['moviename.' + movieName]).toBe( imdbInfoId ); // original movie name
-		expect(cache['moviename.' + movieName + ' (1600)' ]).toBe( imdbInfoId ); // movie name with year
-		expect(cache['imdbId.' + imdbInfoId]).toMatch( movieName ); // the movie object has the movieName
-		expect(cache['imdbId.' + imdbInfoId]).toMatch( imdbInfoId ); // and the id (fuzzy checking)
+		expect(cache.length()).toBe(3);
+		expect(cache.get('moviename.' + movieName)).toBe( imdbInfoId ); // original movie name
+		expect(cache.get('moviename.' + movieName + ' (1600)')).toBe( imdbInfoId ); // movie name with year
+		expect(cache.get('imdbId.' + imdbInfoId)).toMatch( movieName ); // the movie object has the movieName
+		expect(cache.get('imdbId.' + imdbInfoId)).toMatch( imdbInfoId ); // and the id (fuzzy checking)
 		
 	});
 	
@@ -130,11 +146,11 @@ describe("ImdbMarkup", function() {
 		spyOn(pageHandler, 'getMovieElements').andReturn( elements );
 
 		// pre-populate the cache
-		cache['moviename.' + movieName ] =  imdbInfoId;
-		cache['moviename.' + movieName + ' (' + movieYear + ')'] =  imdbInfoId;
-		cache['imdbId.tt101'] = imdbObjectString;
+		cache.put('moviename.' + movieName, imdbInfoId);
+		cache.put('moviename.' + movieName + ' (' + movieYear + ')', imdbInfoId);
+		cache.put('imdbId.tt101', imdbObjectString);
 		// check the cache
-		expect(Object.keys(cache).length).toBe(3);
+		expect(cache.length()).toBe(3);
 		
 		// do the markup
 		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
@@ -149,8 +165,7 @@ describe("ImdbMarkup", function() {
 		expect(movieLookupHandler.loadImdbInfoForMovieName).not.toHaveBeenCalled();
 
 		// cache should be same size
-		expect(Object.keys(cache).length).toBe(3);
-
+		expect(cache.length()).toBe(3);
 	});
 	
 	it("should be able to match a single cached element with a year", function() {
@@ -163,11 +178,11 @@ describe("ImdbMarkup", function() {
 		spyOn(pageHandler, 'getMovieElements').andReturn( elements );
 
 		// pre-populate the cache
-		cache['moviename.' + movieName ] =  imdbInfoId;
-		cache['moviename.' + movieName + ' (' + movieYear + ')'] =  imdbInfoId;
-		cache['imdbId.tt101'] = imdbObjectString;
+		cache.put('moviename.' + movieName, imdbInfoId);
+		cache.put('moviename.' + movieName + ' (' + movieYear + ')', imdbInfoId);
+		cache.put('imdbId.tt101', imdbObjectString);
 		// check the cache
-		expect(Object.keys(cache).length).toBe(3);
+		expect(cache.length()).toBe(3);
 		
 		// do the markup
 		var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
@@ -182,8 +197,7 @@ describe("ImdbMarkup", function() {
 		expect(movieLookupHandler.loadImdbInfoForMovieName).not.toHaveBeenCalled();
 
 		// cache should be same size
-		expect(Object.keys(cache).length).toBe(3);
-
+		expect(cache.length()).toBe(3);
 	});
 });
 

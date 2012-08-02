@@ -905,6 +905,33 @@ function ArrayWrapperMap( array ) {
 	
 };
 
+function BackgroundPageLocalStorageMap() {
+	// <summary>
+	// Wrap an associative array in class with convenience methods.
+	// </summary>
+	this.array;
+	chrome.extension.sendRequest({method: "getLocalStorage", key: "status"}, function(response) {
+		array = response.data;
+	});;
+	
+	this.get = function( key ) {
+		return array[key];
+	}
+	
+	this.put = function( key, value ) {
+		array[key] = value;
+	}
+	
+	this.containsKey = function( key ) {
+		return ( key in array );
+	}
+	
+	this.length = function( key ) {
+		return Object.keys(array).length;
+	}
+	
+};
+
 function getObjectClass(obj) {
     // <summary>
     // Returns the class name of the argument or undefined if
@@ -988,6 +1015,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		if ( null != pageHandler ) {
 			loggingOn?GM_log( "ImdbForSwissCinema.exec() success!" ):void(0); 
 			var cache = ( this.supportsLocalStorage() ? new ArrayWrapperMap(localStorage) : null );
+			//var cache = new BackgroundPageLocalStorageMap();
 			
 			var pageMarkup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
 			pageMarkup.doMarkup( baseElement ); 

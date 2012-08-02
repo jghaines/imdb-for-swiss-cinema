@@ -1,6 +1,6 @@
 {
 	"name":         				"IMDB for Swiss cinema",
-	"version":      				"0.1.0",
+	"version":      				"0.2.0",
 
 	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
 	"homepage_url":					"http://imdb-for-swiss-cinema.jhaines.me/",
@@ -14,15 +14,18 @@
     "content_scripts": [ {
         "exclude_globs":    [],
         "include_globs":    [	"*" ],
-        "js":               [	"src/jquery-1.7.2.min.js",
+        "js":               [	"src/log4javascript.js",
+        						"src/jquery-1.7.2.min.js",
 								"src/swiss-cinema.js"
 							],
         "matches":          [	"http://*.cineman.ch/*",
 								"http://cineman.ch/*",
-								"http://*.orangecinema.ch/*",
-								"http://orangecinema.ch/*",
 								"http://*.filmpodium.ch/*",
 								"http://filmpodium.ch/*",
+								"http://*.kitag.com/*",
+								"http://kitag.com/*",
+								"http://*.orangecinema.ch/*",
+								"http://orangecinema.ch/*",
 								"http://www.starticket.ch/*",
 								"https://www.starticket.ch/*"
                             ]

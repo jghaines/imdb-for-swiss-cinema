@@ -530,6 +530,157 @@ var starticketTestDocuments = {
 		
 };
 
+// Kitag tests
+var kitagTestDocuments = {
+	"Index.aspx" : $('<tbody>').html( hereDoc(function() {/*!
+	<tr>               
+	    <td class="tdMatrixMovie">
+		<table style="width:170px;border:none;margin:0px;padding:0px;" border="0" cellpadding="0" cellspacing="0">
+		    <tbody><tr>
+			<td style="width:62px;" rowspan="2">
+			    <a href="Film.aspx?EventID=649307890"><img src="/tmp/images/642384781.jpg" alt="A FEW BEST MEN - Digital" style="border-width:0px;"></a>
+			</td>
+			<td style="width:108px; vertical-align:top;">
+			    <a href="Film.aspx?EventID=649307890">A FEW BEST MEN - DIGITAL</a>
+			</td>
+		    </tr>
+		    <tr>
+			<td style="vertical-align:bottom;">
+			    <a id="ctl00_ContentPlaceHolder_matrixController_repMatrix_ctl00_eventRowCtrl_lnkTrailer" href="Film.aspx?EventID=649307890">TRAILER</a><br>
+			    Alterskat. <a id="ctl00_ContentPlaceHolder_matrixController_repMatrix_ctl00_eventRowCtrl_lnkRating" href="/Informationen/Altersfreigabe/Zuerich.aspx">J14</a><br>
+			    Filmlänge 97 Min.
+			</td>
+		    </tr>
+		</tbody></table>
+	    </td>
+	</tr>
+	*/})),
+			       
+	"Film.aspx" : $('<tbody>').html( hereDoc(function() {/*!
+	<tr>		   
+	    <td class="tdMatrixMovie">
+		<table style="width:170px;border:none;margin:0px;padding:0px;" border="0" cellpadding="0" cellspacing="0">
+		    <tbody><tr>
+			<td style="width:62px;" rowspan="2">
+			    <img src="/tmp/images/647550252.jpg" alt="SNOW WHITE AND THE HUNTSMAN" style="border-width:0px;">
+			</td>
+			<td style="width:108px; vertical-align:top;">
+			    <span>SNOW WHITE AND THE HUNTSMAN</span>
+			</td>
+		    </tr>
+		    <tr>
+			<td style="vertical-align:bottom;">
+			    <a id="ctl00_ContentPlaceHolder_matrixSingleViewCtrl_repMatrix_ctl00_eventRow_lnkTrailer" href="Film.aspx?EventID=646077480">TRAILER</a><br>
+			    Alterskat. <a id="ctl00_ContentPlaceHolder_matrixSingleViewCtrl_repMatrix_ctl00_eventRow_lnkRating" href="/Informationen/Altersfreigabe/Zuerich.aspx">J14</a><br>
+			    Filmlänge 127 Min.
+			</td>
+		    </tr>
+		</tbody></table>
+	    </td>
+	    <td class="tdMatrixImage">
+	       
+	    </td>
+	</tr>
+	*/})),
+};
+ 
+ 
+describe("KitagIndexHandler", function() {
+	var handler;
+	var testDocument;
+ 
+	beforeEach(function() {
+		handler = new KitagIndexHandler();
+		testDocument = kitagTestDocuments["Index.aspx"];
+	});
+ 
+	describe("match", function() {
+		it("should be match on Index.aspx pages", function() {
+			expect(handler.match("http://www.kitag.com/Programm/Index.aspx?rollout=true")).toBe(true);
+		});
+ 
+		it("should NOT be match on Film.aspx pages", function() {
+			expect(handler.match("http://www.kitag.com/Programm/Film.aspx?MovieID=660379112")).not.toBe(true);
+		});
+	});
+	       
+	it("should find elements on the Index.aspx page", function() {
+			var movieElements = handler.getMovieElements( testDocument);
+ 
+			expect(movieElements).not.toBe(null);
+			expect(movieElements.length).toBe(1);
+ 
+	});
+	       
+	describe("getMovieNameForMovieElement", function() {
+		it("should identify movie names in the page", function() {
+			// get the handler to find the movie elements
+			var movieElements = handler.getMovieElements( testDocument );
+			expect(movieElements.length).toBe(1);
+ 
+			// get the handler to give us the movie names for each element
+			expect(handler.getMovieNameForMovieElement(movieElements[0])).toBe("A FEW BEST MEN");
+			});
+	});
+ 
+});
+ 
+describe("KitagFilmHandler", function() {
+	var handler;
+	var testDocument;
+ 
+	beforeEach(function() {
+		handler = new KitagFilmHandler();
+		testDocument = kitagTestDocuments["Film.aspx"];
+	});
+ 
+	describe("match", function() {
+		it("should NOT be match on Index.aspx pages", function() {
+			expect(handler.match("http://www.kitag.com/Programm/Index.aspx?rollout=true")).not.toBe(true);
+		});
+ 
+		it("should be match on Film.aspx pages", function() {
+			expect(handler.match("http://www.kitag.com/Programm/Film.aspx?MovieID=660379112")).toBe(true);
+		});
+	});
+ 
+	describe("getMovieElements", function() {
+		it("should find elements on the page", function() {
+			var movieElements = handler.getMovieElements( testDocument  );
+ 
+			expect(movieElements).not.toBe(null);
+			expect(movieElements.length).toBe(1);
+			});
+	});
+ 
+	describe("getMovieNameForMovieElement", function() {
+		it("should identify movie names in the page", function() {
+			// get the handler to find the movie elements
+			var movieElements = handler.getMovieElements( testDocument );
+			expect(movieElements.length).toBe(1);
+ 
+			// get the handler to give us the movie names for each element
+			expect(handler.getMovieNameForMovieElement(movieElements[0])).toBe("SNOW WHITE AND THE HUNTSMAN");
+		});
+	});
+ 
+	describe("addRatingElements", function() {
+		it("should add elements to the document", function() {
+			expect(testDocument.html).toMatch( "tr" );
+ 
+			// get the handler to find the movie elements
+			var movieElements = handler.getMovieElements( testDocument );
+ 
+			// get the handler to add a test element to the 1st movieElement
+			var ratingElement = document.createElement("testelement");
+			handler.addRatingElement( ratingElement, movieElements[0] );
+			expect(testDocument.html()).toMatch( "testelement" );
+		});
+	});
+});
+ 
+
+
 describe("StarticketHandler", function() {
 	var handler;
 
@@ -617,7 +768,18 @@ describe("ImdbForSwissCinema", function() {
 		it("should match handler for the URL " + "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3", function() {
 			expect(handler.getPageHandler( "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3" ) instanceof FilmPodiumHandler).toBe(true);
 		});
-
+	});
+		
+	describe("KitagFilmHandler", function() {
+		it("should match handler for the URL " + "http://www.kitag.com/Programm/Film.aspx?EventID=649307890", function() {
+			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Film.aspx?EventID=649307890" ) instanceof KitagFilmHandler).toBe(true);
+		});
+	});
+		
+	describe("KitagIndexHandler", function() {
+		it("should match handler for the URL " + "http://www.kitag.com/Programm/Index.aspx?rollout=true", function() {
+			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Index.aspx?rollout=true" ) instanceof KitagIndexHandler).toBe(true);
+		});
 	});
 		
 	describe("OrangeCinemaProgramHandler", function() {

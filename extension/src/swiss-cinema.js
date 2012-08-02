@@ -255,6 +255,141 @@ function FilmPodiumHandler () {
     };
 };
 
+function extractKitagMovieName( movieName ) {
+	if ( undefined != movieName ) {
+		movieName = movieName.replace( /\s*-\s*(DIGITAL|3D)\s*$/, '' );
+		movieName = movieName.replace( /^\w+\s+M.NNERABEND\s+/, '' );
+		movieName = movieName.replace( /^\w+\s+LADIES NIGHT\s+/, '' );
+	}
+               
+	return movieName;
+}
+               
+function KitagIndexHandler () {
+	// <summary>
+	// Implement a PageHandler for finding movie links on kitag.com.
+	// </summary>
+ 
+	var loggingOn = true;
+	var log = log4javascript.getLogger("SwissCinema.KitagIndexHandler");
+			   
+	this.match = function(href) {
+		// <summary>
+		// Whether this class is a handler for the given href
+		//
+		// @parameter href The URL we are on
+		// @returns whether we can handle this page
+		// </summary>
+
+		return (null != href.match( "kitag\.(com|ch)/Programm/Index.aspx" ));
+	};
+			   
+   
+	this.getMovieElements = function(baseElement, href) {
+		// <summary>
+		// Find and return all the DOM Elements that are associated with movie references in the given page
+		//
+		// @parameter baseElement the DOM Element (document.body) to search in
+		// @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+		// </summary>
+
+		return $('a[href^="Film.aspx"]:not(:has(img)):not([id$="Trailer"])', baseElement);
+	};
+   
+	
+	this.addRatingElement = function( ratingElement, movieElement ) {
+		// <summary>
+		// Adds a given DOM ratingElement relative to the given movieElement.
+		// The function decides on the best positioning of the element for the page layout.
+		// A simple version might be to insert the ratingElement immediately before the movieElement.
+		//
+		// @parameter ratingElement the DOM Element to add
+		// @parameter movieElement an element from the list from this.getMovieElements()
+		// </summary>
+
+		log.info( "KitagHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" );
+		var ratingContainer = $(movieElement).parent().parent().next().find('td');
+							   
+		ratingContainer.prepend("<br />");
+		ratingContainer.prepend( ratingElement );
+	};
+   
+	
+	this.getMovieNameForMovieElement = function(movieElement) {
+		// <summary>
+		// Returns the movie name for the given movieElement.
+		//
+		// @parameter movieElement an element from the list from this.getMovieElements()
+		// @returns The name of the movie, optionally with " (release-year)" appended
+		// </summary>
+ 
+		return extractKitagMovieName(movieElement.text);
+	};
+};
+ 
+ 
+function KitagFilmHandler () {
+	// <summary>
+	// Implement a PageHandler for finding movie links on kitag.com.
+	// </summary>
+ 
+	var loggingOn = true;
+   
+	this.match = function(href) {
+		// <summary>
+		// Whether this class is a handler for the given href
+		//
+		// @parameter href The URL we are on
+		// @returns whether we can handle this page
+		// </summary>
+						   
+		return (null != href.match( "kitag\.(com|ch)/Programm/Film.aspx" ));
+	};
+			   
+   
+	this.getMovieElements = function(baseElement, href) {
+		// <summary>
+		// Find and return all the DOM Elements that are associated with movie references in the given page
+		//
+		// @parameter baseElement the DOM Element (document.body) to search in
+		// @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+		// </summary>
+							   
+		return $('td[class="tdMatrixMovie"] span', baseElement);
+	};
+   
+	
+	this.addRatingElement = function( ratingElement, movieElement ) {
+		// <summary>
+		// Adds a given DOM ratingElement relative to the given movieElement.
+		// The function decides on the best positioning of the element for the page layout.
+		// A simple version might be to insert the ratingElement immediately before the movieElement.
+		//
+		// @parameter ratingElement the DOM Element to add
+		// @parameter movieElement an element from the list from this.getMovieElements()
+		// </summary>
+
+		loggingOn?GM_log( "KitagHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0);
+							   
+		var ratingContainer = $( $( movieElement ).parent().parent().next().children()[0] );
+							   
+		ratingContainer.prepend("<br />");
+		ratingContainer.prepend( ratingElement );
+	};
+   
+	
+	this.getMovieNameForMovieElement = function(movieElement) {
+		// <summary>
+		// Returns the movie name for the given movieElement.
+		//
+		// @parameter movieElement an element from the list from this.getMovieElements()
+		// @returns The name of the movie, optionally with " (release-year)" appended
+		// </summary>
+ 
+		return extractKitagMovieName( movieElement.innerText );
+	};
+};
+
 function extractOrangeCinemaMovieName( movieName ) {
 	movieName = movieName.replace( /^\s*[^\w]+/, "" ); // strip leading non-word (left angle quote)
 	movieName = movieName.replace( /^\s*/, "" ); // strip leading spaces
@@ -978,9 +1113,11 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 	var pageHandlers = [
 		new CinemanMovieHandler(),
 		new CinemanListHandler(),
+		new FilmPodiumHandler(),
+		new KitagFilmHandler(),
+		new KitagIndexHandler(),
 		new OrangeCinemaProgramHandler(),
 		new OrangeCinemaSpecialsListHandler(),
-		new FilmPodiumHandler(),
 		new StarticketHandler(),
 	];
 

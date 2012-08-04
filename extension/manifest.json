@@ -36,5 +36,7 @@
 										"http://www.imdb.com/*",
 										"http://www.imdbapi.com/*"
 									],
-	"minimum_chrome_version":		"18.0"
+	"minimum_chrome_version":		"18.0",
+	
+	"update_url": "http://swiss-cinema-ratings.com/updates.xml"
 }

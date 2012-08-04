@@ -1,0 +1,11 @@
+# Mac OS X
+.DS_Store
+
+*.swp
+*~.nib
+
+build/
+
+# Xcode
+.xcodeproj/ !*.xcodeproj/project.pbxproj
+

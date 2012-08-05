@@ -14,8 +14,8 @@
     "content_scripts": [ {
         "exclude_globs":    [],
         "include_globs":    [	"*" ],
-        "js":               [	"src/log4javascript.js",
-        						"src/jquery-1.7.2.min.js",
+        "js":               [	"lib/log4javascript.js",
+        						"lib/jquery-1.7.2.min.js",
 								"src/swiss-cinema.js"
 							],
         "matches":          [	"http://*.cineman.ch/*",

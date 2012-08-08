@@ -780,6 +780,9 @@ describe("ImdbForSwissCinema", function() {
 		it("should match handler for the URL " + "http://www.kitag.com/Programm/Index.aspx?rollout=true", function() {
 			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Index.aspx?rollout=true" ) instanceof KitagIndexHandler).toBe(true);
 		});
+		it("should match handler for the URL " + "http://www.kitag.com/Programm/Kino.aspx?ID=999", function() {
+			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Kino.aspx?ID=19530" ) instanceof KitagIndexHandler).toBe(true);
+		});
 	});
 		
 	describe("OrangeCinemaProgramHandler", function() {

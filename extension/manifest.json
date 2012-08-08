@@ -1,9 +1,9 @@
 {
-	"name":         				"IMDB for Swiss cinema",
-	"version":      				"0.2.0",
+	"name":         				"IMDb for Swiss cinema",
+	"version":      				"0.2.1",
 
 	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
-	"homepage_url":					"http://imdb-for-swiss-cinema.jhaines.me/",
+	"homepage_url":					"http://www.cinema-ratings.ch/",
 	"icons":						{	"16":	"images/imdb-swiss-16.png",
 										"48":	"images/imdb-swiss-48.png",
 										"128":	"images/imdb-swiss-128.png"

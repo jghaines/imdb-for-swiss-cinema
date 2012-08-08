@@ -267,7 +267,7 @@ function extractKitagMovieName( movieName ) {
                
 function KitagIndexHandler () {
 	// <summary>
-	// Implement a PageHandler for finding movie links on kitag.com.
+	// Implement a PageHandler for finding movie links on kitag.com list pages - Index.aspx, Kino.aspx
 	// </summary>
  
 	var loggingOn = true;
@@ -281,7 +281,7 @@ function KitagIndexHandler () {
 		// @returns whether we can handle this page
 		// </summary>
 
-		return (null != href.match( "kitag\.(com|ch)/Programm/Index.aspx" ));
+		return (null != href.match( "kitag\.(com|ch)/Programm/(Index|Kino).aspx" ));
 	};
 			   
    
@@ -326,7 +326,6 @@ function KitagIndexHandler () {
 		return extractKitagMovieName(movieElement.text);
 	};
 };
- 
  
 function KitagFilmHandler () {
 	// <summary>

@@ -1,6 +1,6 @@
 {
 	"name":         				"IMDb for Swiss cinema",
-	"version":      				"0.2.1",
+	"version":      				"0.3",
 
 	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
 	"homepage_url":					"http://www.cinema-ratings.ch/",
@@ -27,7 +27,11 @@
 								"http://*.orangecinema.ch/*",
 								"http://orangecinema.ch/*",
 								"http://www.starticket.ch/*",
-								"https://www.starticket.ch/*"
+								"https://www.starticket.ch/*",
+								"http://zff.com/*",
+								"https://zff.com/*",
+								"http://*.zff.com/*",
+								"https://*.zff.com/*"
                             ]
     } ],
 	"converted_from_user_script":	true,

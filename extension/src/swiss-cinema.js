@@ -605,6 +605,64 @@ function StarticketHandler () {
     };
 };
 
+function ZffHandler () {
+    // <summary>
+    // Implement a PageHandler for finding movie links on a zff.com movie page
+    // </summary>
+
+	var loggingOn = true;
+    
+	this.match = function(href) {
+        // <summary>
+        // Whether this class is a handler for the given href
+        //
+        // @parameter href The URL we are on
+        // @returns whether we can handle this page
+        // </summary>
+		
+		return ( null != href.match( "zff.com/(en/programme|de/programm|fr/programme)/" ));
+	};
+    
+    this.getMovieElements = function(baseElement) {
+        // <summary>
+        // Find and return all the DOM Elements that are associated with movie references in the given page
+        //
+        // @parameter baseElement the DOM Element (document.body) to search in 
+        // @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
+        // </summary>
+
+		return $('a[href *= "/movies/"]', baseElement );
+    };
+    
+    this.addRatingElement = function( ratingElement, movieElement ) {
+        // <summary>
+        // Adds a given DOM ratingElement relative to the given movieElement.
+        //
+        // @parameter ratingElement the DOM Element to add
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // </summary>
+
+		$('h3', movieElement).append( ratingElement );
+    };
+    
+    this.getMovieNameForMovieElement = function(movieElement) {
+        // <summary>
+        // Returns the movie name for the given movieElement.
+        // 
+        // This cineman.ch version is able to extract the release year and this is appended.
+        //
+        // @parameter movieElement an element from the list from this.getMovieElements()
+        // @returns The name of the movie, optionally with " (release-year)" appended 
+        // </summary>
+
+		return $('h3', movieElement).clone()
+            .children()
+            .remove()
+            .end()
+            .text();
+        };
+};
+
 // function to be embedded into ImdbInfo objects
 function getImdbUrl() {
 	// <summary>
@@ -981,6 +1039,7 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 		
         // scan page, add IMDb elements
         var movieElements = pageHandler.getMovieElements( baseElement );
+		loggingOn?GM_log( "ImdbMarkup.doMarkup() - found " + movieElements.length + " matches" ):void(0);
         for ( var i = 0; i < movieElements.length; ++i ) {
             var movieElement = movieElements[i];
             var movieName = pageHandler.getMovieNameForMovieElement( movieElement );
@@ -1118,6 +1177,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		new OrangeCinemaProgramHandler(),
 		new OrangeCinemaSpecialsListHandler(),
 		new StarticketHandler(),
+		new ZffHandler(),
 	];
 
 
@@ -1128,11 +1188,12 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		// @param href The URL of the page
 		// @return The pageHandler object, or null if none found
 		// </summary> 
-		loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + pageHandlers.length + " handlers" ):void(0); 
+		loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + pageHandlers.length + " handlers on " + href ):void(0); 
 		for ( var i=0; i < pageHandlers.length; ++i ) {
 			var pageHandler = pageHandlers[i];
-			loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + getObjectClass(pageHandler) + " on:" + href ):void(0); 
+			loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + getObjectClass(pageHandler) ):void(0); 
 			if ( pageHandler.match( href ) ) {
+				loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() matched! Using: " + getObjectClass(pageHandler) ):void(0); 
 				return pageHandler;
 			}
 		}
@@ -1149,7 +1210,6 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		// </summary>
 		var pageHandler = this.getPageHandler( href );
 		if ( null != pageHandler ) {
-			loggingOn?GM_log( "ImdbForSwissCinema.exec() success!" ):void(0); 
 			var cache = ( this.supportsLocalStorage() ? new ArrayWrapperMap(localStorage) : null );
 			//var cache = new BackgroundPageLocalStorageMap();
 			

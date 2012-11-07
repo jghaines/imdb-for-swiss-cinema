@@ -754,6 +754,10 @@ describe("ImdbForSwissCinema", function() {
 			expect(handler.getPageHandler("http://www.cineman.ch/en/showtimes/process.php?order=time&lang=en") instanceof CinemanListHandler).toBe(true);
 		});
 	
+		it("should match handler for the URL " + "http://www.cineman.ch/en/showtimes/Z%FCrich/", function() {
+			expect(handler.getPageHandler("http://www.cineman.ch/en/showtimes/Z%FCrich/") instanceof CinemanListHandler).toBe(true);
+		});
+	
 		it("should match handler for the URL " + "http://www.cineman.ch/en/comingsoon/", function() {
 			expect(handler.getPageHandler("http://www.cineman.ch/en/comingsoon/") instanceof CinemanListHandler).toBe(true);
 		});

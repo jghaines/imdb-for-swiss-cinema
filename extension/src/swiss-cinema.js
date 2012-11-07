@@ -25,7 +25,11 @@ function CinemanListHandler () {
     // The IMDb links are added before the "ceebox"
     // </summary>
 
-	var loggingOn = true;
+	var loggingOn = false;
+    
+    // regex to match the cineman pages
+    var cinemanUrlRegex = new RegExp( 
+    	"cineman.ch/.*/(comingsoon|jetzt_im_kino.php|openair/movies.php|process.php|showtimes/|theatre/detail.php)" );
     
     // regex to match the cineman movie URLs so that the year ($1) can be extracted
     var cinemanMovieUrlRegex = new RegExp( "/movie/(19[0-9]{2}|20[0-9]{2})/" );
@@ -40,7 +44,7 @@ function CinemanListHandler () {
         // </summary>
 		
 		return ( null !=
-			href.match( "cineman.ch/.*/(jetzt_im_kino.php|theatre/detail.php|process.php|comingsoon|openair/movies.php)" ));
+			href.match( cinemanUrlRegex ));
 	};
 	
     
@@ -641,6 +645,8 @@ function ZffHandler () {
         // @parameter ratingElement the DOM Element to add
         // @parameter movieElement an element from the list from this.getMovieElements()
         // </summary>
+
+		$(ratingElement).css( "float", "right" );
 
 		$('h3', movieElement).append( ratingElement );
     };

@@ -1,3 +1,12 @@
+//var loggingOn = true;
+
+//http://stackoverflow.com/a/3060267/358224
+function log(msg) {
+    setTimeout(function() {
+        throw new Error(msg);
+    }, 0);
+}
+
 function hereDoc(f) {
 	// multi-line hack from http://stackoverflow.com/questions/805107/how-to-create-multiline-strings
 	return f.toString().
@@ -33,30 +42,96 @@ describe("ImdbComMovieLookup", function() {
 	});
 
 	it("should be able to lookup Matrix (1999)", function() {
-	var movieName = "Matrix (1999)"
+		var movieName = "Matrix (1999)"
 		lookup.loadImdbInfoForMovieName( movieName, function(){} );
-	expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
+		expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
 								'method': 'GET',
 								'url': "http://www.imdb.com/find?s=tt&q="+ movieName,
 								'onload': jasmine.any(Function)
 						});
 
-	expect(GM_xmlhttpRequest.calls.length).toEqual(1);
+		expect(GM_xmlhttpRequest.calls.length).toEqual(1);
 	});
 
 
 	it("should be able to lookup Frankenstein", function() {
-	var movieName = "Frankenstein"
+		var movieName = "Frankenstein"
 		lookup.loadImdbInfoForMovieName( movieName, function(){} );
-	expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
+		expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
 								'method': 'GET',
 								'url': "http://www.imdb.com/find?s=tt&q="+ movieName,
 								'onload': jasmine.any(Function)
 						});
 
-	expect(GM_xmlhttpRequest.calls.length).toEqual(1);
+		expect(GM_xmlhttpRequest.calls.length).toEqual(1);
 	});
 });
+
+
+// ImdbApiCom class tests
+describe("ImdbApiComMovieLookup", function() {
+	var lookup;
+
+	beforeEach(function() {
+		lookup = new ImdbapiComMovieLookup();
+		
+		GM_xmlhttpRequest = jasmine.createSpy('GM_xmlhttpRequest');
+		
+	});
+
+	it("should be able to lookup Matrix (1999)", function() {
+		var movieName = "Matrix (1999)"
+		lookup.loadImdbInfoForMovieName( movieName, function(){} );
+		expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
+								'method': 'GET',
+								'url': "http://www.imdbapi.com/?i=&t="+ movieName,
+								'onload': jasmine.any(Function)
+						});
+
+		expect(GM_xmlhttpRequest.calls.length).toEqual(1);
+	});
+
+
+	it("should be able to lookup Frankenstein", function() {
+		var movieName = "Frankenstein"
+		lookup.loadImdbInfoForMovieName( movieName, function(){} );
+		expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
+								'method': 'GET',
+								'url': "http://www.imdbapi.com/?i=&t="+ movieName,
+								'onload': jasmine.any(Function)
+						});
+
+		expect(GM_xmlhttpRequest.calls.length).toEqual(1);
+	});
+
+	describe("loadImdbInfoForMovieName", function() {
+		it("should return a defined value", function() {
+			// var lookup = new ImdbapiComMovieLookup();
+
+			// GM_log("ImdbComMovieLookup.loadImdbInfoForMovieName"):void(0);
+
+			// window.alert("Test");
+
+
+			log("Our test msg..");	
+
+			// var movieName = "";
+			// var onloadImdbInfo = function(movieName, imdbInfo) { window.alert("sometext"); } // callback imdbInfoLoaded
+
+			// var callbackToken = lookup.loadImdbInfoForMovieName( movieName, onloadImdbInfo );
+			// throw('callbackToken: ' + callbackToken);
+			// expect(callbackToken).toBeUndefined();
+			//expect(null).not.toBe(null);
+
+			//expect(true).toBe(false);
+			
+		});	
+	});
+});
+
+
+
+
 
 describe("ImdbMarkup", function() {
 	var imdbObjectString = '{"Title":"My Movie","Year":"1600","imdbRating":"7.0","imdbID":"tt101"}';
@@ -201,16 +276,6 @@ describe("ImdbMarkup", function() {
 	});
 });
 
-// ImdbMovieLookup tests - TODO
-describe("ImdbComMovieLookup", function() {
-	it("TODO", function() {
-	});
-});
-	
-describe("ImdbApiComMovieLookup", function() {
-	it("TODO", function() {
-	});
-});
 
 // misc function - extractOrangeCinemaMovieName
 describe("extractOrangeCinemaMovieName", function() {

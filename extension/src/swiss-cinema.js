@@ -697,6 +697,8 @@ function ImdbComMovieLookup () {
     // <summary>
     // A class that uses http://www.imdb.com/ to lookup movie info
     // </summary>
+    // this doesn't appear to be working (march 2013)
+
     
     var loggingOn = false;
 
@@ -816,7 +818,9 @@ function ImdbapiComMovieLookup () {
     // <summary>
     // A class that uses http://www.imdb.apicom/ to lookup movie info
     // </summary>
-    
+    // this doesn't appear to be working (march 2013)
+
+
     var loggingOn = false;
 
 	this.imdbSearchUrl = function(movieName) {
@@ -1229,8 +1233,8 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 (function () { 
     return { 
         exec: function () { 
-			var movieLookupHandler = new ImdbComMovieLookup(); // use imdb.com to lookup movie info
-			// var movieLookupHandler = new ImdbapiComMovieLookup(); // use imdbapi.com to lookup movie info
+			//var movieLookupHandler = new ImdbComMovieLookup(); // use imdb.com to lookup movie info
+			var movieLookupHandler = new ImdbapiComMovieLookup(); // use imdbapi.com to lookup movie info
 
 			var imdbForSwissCinema = new ImdbForSwissCinema( movieLookupHandler );
 			imdbForSwissCinema.exec( window.location.href, document.body );

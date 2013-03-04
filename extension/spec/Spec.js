@@ -80,11 +80,13 @@ describe("ImdbApiComMovieLookup", function() {
 	});
 
 	it("should be able to lookup Matrix (1999)", function() {
-		var movieName = "Matrix (1999)"
-		lookup.loadImdbInfoForMovieName( movieName, function(){} );
+		var movieName = "Matrix";
+		var movieYear = 1999;
+		var movieSearchString =  movieName + " (" + movieYear + ")";
+		lookup.loadImdbInfoForMovieName( movieSearchString, function(){} );
 		expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
 								'method': 'GET',
-								'url': "http://www.imdbapi.com/?i=&t="+ movieName,
+								'url': "http://www.omdbapi.com/?i=&s="+ movieName + "&y=" + movieYear,
 								'onload': jasmine.any(Function)
 						});
 
@@ -97,7 +99,7 @@ describe("ImdbApiComMovieLookup", function() {
 		lookup.loadImdbInfoForMovieName( movieName, function(){} );
 		expect(GM_xmlhttpRequest).toHaveBeenCalledWith({
 								'method': 'GET',
-								'url': "http://www.imdbapi.com/?i=&t="+ movieName,
+								'url': "http://www.omdbapi.com/?i=&s="+ movieName,
 								'onload': jasmine.any(Function)
 						});
 
@@ -160,7 +162,7 @@ describe("ImdbMarkup", function() {
 	}
 	
 	beforeEach(function() {
-		pageHandler = new CinemanListHandler();
+		pageHandler = new CinemanListHandler(); // we aren't testing this class, just using it as an example instance
 		movieLookupHandler = new DummyMovieLookupHandler();
 		spyOn(movieLookupHandler, 'loadImdbInfoForMovieName').andCallThrough();
 		
@@ -296,6 +298,35 @@ describe("extractOrangeCinemaMovieName", function() {
 
 });
 
+
+var cinemaTestDocuments = {
+	"jetzt_im_kino.php" : $('<tbody>').html( hereDoc(function() {/*!
+<tr>
+				    <td width="20" class="">
+					    						    a					    				    </td>
+				    <td width="300" class="">
+    					    <a class="listingtitle" href="/en/movie/2012/TheImpossible/" title="The Impossible">The Impossible</a>
+					    
+    					    14:30, 17:30, 20:30					    					    <a href="#" class="greylink inline lang" rel="#lang_text_container" title="Languages">Egf</a>
+					     | <a class="greylink age inline" href="#" rel="#age_text_container" title="Minimum age">12y.</a>					    					    					    				    </td>
+    				    <td width="70" class="">
+					    					    <a class="ceebox" href="/en/layer/rating/rating.php?movie_id=19121" rel="iframe modal:true width:500 height:330"><img class="rating" height="12" width="65" title="Rate a film" alt="Rate a film" src="/img/rating/rating_ch/red40.gif" style="visibility: visible;"></a>
+				    </td>
+				    <td width="24" class="">
+    					    <a href="/en/movie/2012/TheImpossible/trailer.html"><img height="24" width="24" title="Trailer" alt="Trailer" src="/img/global/icons/play_24px.gif"></a>
+    				    </td>
+				    <td width="24" class="last_td ">
+    												    <a class="ceebox" rel="iframe modal:true width:500 height:330" href="/en/layer/watchlist/add_to_watchlist.php?channel=cinema&amp;id=19121">
+							    <img src="/img/global/icons/watchlist_empty_24px.gif" width="24" height="24" alt="Set on Watchlist" title="Set on Watchlist" style="visibility: visible;">
+						    </a>
+    				    </td>
+    			    </tr>
+		*/})),
+		
+};
+
+
+
 // MoviePageHandler tests
 describe("CinemanListHandler", function() {
 	var handler;
@@ -309,6 +340,18 @@ describe("CinemanListHandler", function() {
 			expect(handler.match("http://www.cineman.ch/en/showtimes/process.php?order=movie&lang=en&date=2012-07-08")).toBe(true);
 		});
 	});
+
+	// this is failing:
+	// Object [object Object] has no method 'getElementsByClassName'
+	// odd...
+	xit("should find elements on the jetzt_im_kino.php page", function() {
+		var movieElements = handler.getMovieElements( cinemaTestDocuments["jetzt_im_kino.php"] );
+
+		expect(movieElements).not.toBe(null);
+		expect(movieElements.length).toBe(1);
+
+	});
+
 });
 
 var filmpodiumTestDocuments = {

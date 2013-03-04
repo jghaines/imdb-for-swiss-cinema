@@ -836,16 +836,22 @@ function ImdbapiComMovieLookup () {
     };
   
 
-	this.imdbapiSearchUrl = function(movieName) {
+	this.imdbapiSearchUrl = function(movieName, movieYear) {
         // <summary>
         // Utility function. A URL to do a title search for the given movieName on IMDb.
-        // Search is more accurate if release year is appended. e.g. "Avatar (2009)" 
+        // Search is more accurate if release year is provided. 
         //
         // @parameter movieName The movie name as on the original page
+        // @parameter movieYear (optional) The year of the movie
         // @returns A URL that will return search results from IMDb
         // </summary>
         
-        return "http://www.imdbapi.com/?i=&t=" + movieName;
+        var searchUrl = "http://www.omdbapi.com/?i=&s=" + movieName;
+        if ( movieYear ) { // optional argument was provided
+            searchUrl += "&y=" + movieYear;
+        }
+
+        return searchUrl;
     };
   
 
@@ -870,17 +876,29 @@ function ImdbapiComMovieLookup () {
 	};
 	
 	
-    this.loadImdbInfoForMovieName = function( movieName, onloadImdbInfo ) {
+    this.loadImdbInfoForMovieName = function( movieSearchString, onloadImdbInfo ) {
 		// <summary>
 		// Load the ImdbInfo for the given movieName, invoke the onloadImdbInfo callback on completion.
 		//
-        // @parameter movieName The movie name as on the original page
+        // @parameter movieSearchString The movie name, with optional year in brackets (e.g. "Matrix (1999)")
 		// @parameter onloadImdbInfo Function(movieName, imdbInfo) that is called on completion
 		// </summary>
 
 		loggingOn?GM_log("ImdbapiComMovieLookup.loadImdbInfoForMovieName( " + movieName + ", " + onloadImdbInfo + " )"  ):void(0);
+
+        var movieName = movieSearchString;
+        var movieYear;
+
+        var movieYearRegex = new RegExp( "\\s*\\(([0-9]+)\\)$" );
+        var movieYearRegexMatch = movieSearchString.match( movieYearRegex );
+
+        if ( movieYearRegexMatch != null ) {
+            movieYear = movieYearRegexMatch[1];
+            movieName = movieSearchString.replace( movieYearRegex, "" ); // name is search string without the year
+        }
 		
-		var searchUrl = this.imdbapiSearchUrl( movieName );
+        log(movieYear);
+		var searchUrl = this.imdbapiSearchUrl( movieName, movieYear );
 		loggingOn?GM_log("ImdbapiComMovieLookup.loadImdbInfoForMovieName() - searchUrl=" + searchUrl  ):void(0);
 		
 		var that = this; // route the XHR callback to correct object

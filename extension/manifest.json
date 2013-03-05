@@ -1,6 +1,6 @@
 {
 	"name":         				"IMDb for Swiss cinema",
-	"version":      				"0.3",
+	"version":      				"0.4",
 
 	"description":  				"Adds IMDB ratings links to Swiss cinema sites",
 	"homepage_url":					"http://www.cinema-ratings.ch/",
@@ -38,7 +38,7 @@
 	
 	"permissions":					[	"storage",
 										"http://www.imdb.com/*",
-										"http://www.imdbapi.com/*"
+										"http://www.imdbapi.com/*",
 										"http://www.omdbapi.com/*"
 									],
 	"minimum_chrome_version":		"18.0"

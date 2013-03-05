@@ -196,7 +196,7 @@ function FilmPodiumHandler () {
     // Implement a PageHandler for finding movie links on filmpodium.ch.
     // </summary>
 
-	var loggingOn = true;
+	var loggingOn = false;
     
 	this.match = function(href) {
         // <summary>
@@ -274,7 +274,7 @@ function KitagIndexHandler () {
 	// Implement a PageHandler for finding movie links on kitag.com list pages - Index.aspx, Kino.aspx
 	// </summary>
  
-	var loggingOn = true;
+	var loggingOn = false;
 	var log = log4javascript.getLogger("SwissCinema.KitagIndexHandler");
 			   
 	this.match = function(href) {
@@ -336,7 +336,7 @@ function KitagFilmHandler () {
 	// Implement a PageHandler for finding movie links on kitag.com.
 	// </summary>
  
-	var loggingOn = true;
+	var loggingOn = false;
    
 	this.match = function(href) {
 		// <summary>
@@ -414,7 +414,7 @@ function OrangeCinemaProgramHandler () {
     // The IMDb links are added 
     // </summary>
 
-	var loggingOn = true;
+	var loggingOn = false;
     
 	this.match = function(href) {
         // <summary>
@@ -491,7 +491,7 @@ function OrangeCinemaSpecialsListHandler () {
     // The IMDb links are added 
     // </summary>
 
-	var loggingOn = true;
+	var loggingOn = false;
     
 	this.match = function(href) {
         // <summary>
@@ -556,7 +556,7 @@ function StarticketHandler () {
     // Implement a PageHandler for finding movie links on a www.starticket.ch movie page
     // </summary>
 
-	var loggingOn = true;
+	var loggingOn = false;
     
 	this.match = function(href) {
         // <summary>
@@ -614,7 +614,7 @@ function ZffHandler () {
     // Implement a PageHandler for finding movie links on a zff.com movie page
     // </summary>
 
-	var loggingOn = true;
+	var loggingOn = false;
     
 	this.match = function(href) {
         // <summary>
@@ -677,7 +677,7 @@ function getImdbUrl() {
 	// @returns A URL that will return the link for this movie in IMDb
 	// </summary>
 	
-	return "http://www.imdb.com/title/" + this.ID + "/";       
+	return "http://www.imdb.com/title/" + this.imdbID + "/";       
 };
 
 function ImdbInfo () {
@@ -772,7 +772,7 @@ function ImdbComMovieLookup () {
                                           
             imdbInfo.Title = RegExp.$1;
             imdbInfo.Year = RegExp.$2;
-            imdbInfo.ID = RegExp.$3;
+            imdbInfo.imdbID = RegExp.$3;
             
             var ratingRegex = new RegExp('<span [^>]*itemprop="ratingValue"[^>]*>([\.0-9]+)</span>');
             var matchRatingRegex = ratingRegex.exec(imdbPageText);
@@ -816,9 +816,8 @@ function ImdbComMovieLookup () {
 
 function ImdbapiComMovieLookup () {
     // <summary>
-    // A class that uses http://www.imdb.apicom/ to lookup movie info
+    // A class that uses http://www.omdbapi.com/ to lookup movie info
     // </summary>
-    // this doesn't appear to be working (march 2013)
 
 
     var loggingOn = false;
@@ -836,7 +835,7 @@ function ImdbapiComMovieLookup () {
     };
   
 
-	this.imdbapiSearchUrl = function(movieName, movieYear) {
+	this.imdbapiSearchUrl = function(movieSearchString) {
         // <summary>
         // Utility function. A URL to do a title search for the given movieName on IMDb.
         // Search is more accurate if release year is provided. 
@@ -846,7 +845,26 @@ function ImdbapiComMovieLookup () {
         // @returns A URL that will return search results from IMDb
         // </summary>
         
-        var searchUrl = "http://www.omdbapi.com/?i=&s=" + movieName;
+        var movieName = movieSearchString;
+        var movieYear;
+
+        var movieYearRegex = new RegExp( /\s*\(([0-9]+)\)$/ );
+        var movieYearRegexMatch = movieSearchString.match( movieYearRegex );
+
+        if ( movieYearRegexMatch != null ) {
+            movieYear = movieYearRegexMatch[1];
+            movieName = movieSearchString.replace( movieYearRegex, "" ); // name is search string without the year
+        }
+        
+        movieName = movieName
+            .replace( /\s+and\s+/g, ' ' ) // fix "and" vs "&" omdbapi 'bug' 
+            .replace( /\xE9/g, 'e' ) // accent-e euro-character omdbapi bug
+            .replace( /\xE4/g, 'a' ) // umlaut-a euro-character omdbapi bug
+            .replace( /\xF6/g, 'o' ) // umlaut-o euro-character omdbapi bug
+            .replace( /\xFC/g, 'u' ) // umlaut-u euro-character omdbapi bug
+        ;
+        
+        var searchUrl = "http://www.omdbapi.com/?s=" + movieName;
         if ( movieYear ) { // optional argument was provided
             searchUrl += "&y=" + movieYear;
         }
@@ -855,27 +873,60 @@ function ImdbapiComMovieLookup () {
     };
   
 
-	this.parseApiPage = function( movieName, apiPageText, onloadImdbInfo ) {
+    this.parseApiSearchResults = function( movieSearchString, imdbApiSearchInfo, onloadImdbInfo ) {
+        // <summary>
+        // Parse a page returned from an IMDb API search.
+        //
+        // @parameter movieName The movie name as on the original page
+        // @parameter imdbPageText The text of the page. 
+        // @parameter onloadImdbInfo Function(movieName, imdbInfo) that is called on completion
+        // @returns An IMDb info object 
+        // </summary>
+
+        loggingOn?GM_log("ImdbapiComMovieLookup.parseApiSearchResults( " + movieSearchString + ", <imdbPageText> " + onloadImdbInfo + " )" ):void(0);
+
+        // filter only movies, get the imdbID of the first (best) match
+        var imdbID = $( imdbApiSearchInfo["Search"] ).filter( function() { return "movie" == this["Type"]; } )[0]["imdbID"]
+
+        if ( imdbID ) {
+            var lookupUrl = "http://www.omdbapi.com/?tomatoes=true&i=" + imdbID;
+            loggingOn?GM_log("ImdbapiComMovieLookup.parseApiSearchResults() lookupUrl=" + lookupUrl ):void(0);
+
+            var that = this; // route the XHR callback to correct object
+            $.ajax({
+                dataType: "json",
+                url: lookupUrl,
+                success: function(data) { 
+                    that.parseApiLookupResult( movieSearchString, data, onloadImdbInfo );
+                }
+            });
+        } else  {
+            loggingOn?GM_log("ImdbapiComMovieLookup.parseApiSearchResults() lookup failed" ):void(0);
+            loggingOn?GM_log("ImdbapiComMovieLookup.parseApiSearchResults() omdbapi Error: " + imdbApiSearchInfo["Error"] ):void(0);
+        }
+
+    };
+    
+    
+    this.parseApiLookupResult = function( movieSearchString, imdbInfo, onloadImdbInfo ) {
         // <summary>
         // Parse a page returned from an IMDb search. May be a movie result or a search page.
         //
         // @parameter movieName The movie name as on the original page
         // @parameter imdbPageText The text of the page. 
-		// @parameter onloadImdbInfo Function(movieName, imdbInfo) that is called on completion
-		// @returns An IMDb info object 
+        // @parameter onloadImdbInfo Function(movieName, imdbInfo) that is called on completion
+        // @returns An IMDb info object 
         // </summary>
 
-		loggingOn?GM_log("ImdbapiComMovieLookup.parseApiPage( " + movieName + ", <imdbPageText> " + onloadImdbInfo + " )"  ):void(0);
+        loggingOn?GM_log("ImdbapiComMovieLookup.parseApiPage( " + movieSearchString + ", <imdbPageText> " + onloadImdbInfo + " )"  ):void(0);
 
-		var imdbInfo = JSON.parse( apiPageText );
+        // augment with getUrl function
+        imdbInfo.getUrl = getImdbUrl;
 
-		// augment with getUrl function
-		imdbInfo.getUrl = getImdbUrl;
-
-		onloadImdbInfo( movieName, imdbInfo );
-	};
-	
-	
+        onloadImdbInfo( movieSearchString, imdbInfo );
+    };
+    
+    
     this.loadImdbInfoForMovieName = function( movieSearchString, onloadImdbInfo ) {
 		// <summary>
 		// Load the ImdbInfo for the given movieName, invoke the onloadImdbInfo callback on completion.
@@ -884,29 +935,17 @@ function ImdbapiComMovieLookup () {
 		// @parameter onloadImdbInfo Function(movieName, imdbInfo) that is called on completion
 		// </summary>
 
-		loggingOn?GM_log("ImdbapiComMovieLookup.loadImdbInfoForMovieName( " + movieName + ", " + onloadImdbInfo + " )"  ):void(0);
+		loggingOn?GM_log("ImdbapiComMovieLookup.loadImdbInfoForMovieName( " + movieSearchString + ", " + onloadImdbInfo + " )"  ):void(0);
 
-        var movieName = movieSearchString;
-        var movieYear;
-
-        var movieYearRegex = new RegExp( "\\s*\\(([0-9]+)\\)$" );
-        var movieYearRegexMatch = movieSearchString.match( movieYearRegex );
-
-        if ( movieYearRegexMatch != null ) {
-            movieYear = movieYearRegexMatch[1];
-            movieName = movieSearchString.replace( movieYearRegex, "" ); // name is search string without the year
-        }
-		
-        log(movieYear);
-		var searchUrl = this.imdbapiSearchUrl( movieName, movieYear );
+		var searchUrl = this.imdbapiSearchUrl( movieSearchString );
 		loggingOn?GM_log("ImdbapiComMovieLookup.loadImdbInfoForMovieName() - searchUrl=" + searchUrl  ):void(0);
 		
-		var that = this; // route the XHR callback to correct object
-        GM_xmlhttpRequest({
-            'method':	'GET',
-            'url':		searchUrl,
-            'onload':	function (xhr) {
-                that.parseApiPage( movieName, xhr.responseText, onloadImdbInfo );
+		var that = this; // route the callback to correct object
+        $.ajax({
+            dataType: "json",
+            url: searchUrl,
+            success: function(data) { 
+                that.parseApiSearchResults( movieSearchString, data, onloadImdbInfo );
             }
         });
 	}
@@ -926,14 +965,14 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 	this.movieLookupHandler = movieLookupHandler;
     this.cache = cache;
     
-    var loggingOn = true;
+    var loggingOn = false;
     
 	
 	this.putImdbInfoToCache = function( movieName, imdbInfo ) {
 		// <summary>
 		// Store the mappings in local cache:
-		//   movieName -> imdbId
-		//   imdbId -> imdbInfo
+		//   movieName.*  -> imdbId
+		//   imdbId.*     -> imdbInfo
 		//
         // @parameter movieName The movie name as on the original page
         // @parameter imdbInfo The movie info from IMDb
@@ -942,11 +981,19 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
         loggingOn?GM_log("ImdbMarkup.putImdbInfoToCache( " + movieName + ", [" + typeof(imdbInfo) + "]" + imdbInfo + " )"  ):void(0);
 
 		if ( null != cache ) {
-			cache.put( "moviename." + movieName, imdbInfo.ID); // movie name on page
-			cache.put( "moviename." + imdbInfo.Title, imdbInfo.ID); // official IMDB movie name
-			cache.put( "moviename." + movieName + " (" + imdbInfo.Year + ")", imdbInfo.ID); // movie name on page with year
-			cache.put( "moviename." + imdbInfo.Title + " (" + imdbInfo.Year + ")", imdbInfo.ID); // official IMDB movie name with year
-			cache.put( "imdbId." + imdbInfo.ID, JSON.stringify( imdbInfo ));
+            if ( null != imdbInfo["imdbID"] && null != movieName ) {
+    		  cache.put( "moviename."  + movieName, imdbInfo["imdbID"] ); // movie name on page (may be overwritten, below)
+    		}
+            if ( null != imdbInfo["imdbID"] && null != imdbInfo["Title"] ) {
+                cache.put( "moviename."  + imdbInfo["Title"], imdbInfo["imdbID"] ); // official IMDB movie name
+            }
+            if ( null != imdbInfo["imdbID"] && null != imdbInfo["Title"] && null != imdbInfo["Year"] ) {
+            	cache.put( "moviename."  + imdbInfo["Title"] + " (" + imdbInfo["Year"] + ")", imdbInfo["imdbID"] ); // official IMDB movie name with year
+            }
+
+            if ( null != imdbInfo &&  null != imdbInfo["imdbID"] ) {
+                cache.put( "imdbId."+ imdbInfo["imdbID"], JSON.stringify( imdbInfo ));
+            }
 		}
 	}
 	
@@ -1003,11 +1050,11 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
         // </summary>
         
 		loggingOn?GM_log( "ImdbMarkup.setRatingOnElement( " + ratingElement + ", " + imdbInfo + " )"  ):void(0);
-		if ( 'undefined' == typeof( imdbInfo ) || 'undefined' == typeof( imdbInfo.Rating ) ) {
+		if ( 'undefined' == typeof( imdbInfo ) || 'undefined' == typeof( imdbInfo.imdbRating ) ) {
 			ratingElement.getElementsByClassName("imdbRating")[0].innerHTML = "???";
 
 		} else {
-			ratingElement.getElementsByClassName("imdbRating")[0].innerHTML = imdbInfo.Rating;
+			ratingElement.getElementsByClassName("imdbRating")[0].innerHTML = imdbInfo.imdbRating;
 			ratingElement.getElementsByTagName("a")[0].setAttribute( "href", imdbInfo.getUrl() );
 		}
     }
@@ -1180,7 +1227,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
     // <summary>
     this.movieLookupHandler = movieLookupHandler;
 
-    var loggingOn = true;
+    var loggingOn = false;
 
 	this.supportsLocalStorage = function() {
 		// <summary>

@@ -991,12 +991,20 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
             	cache.put( "moviename."  + imdbInfo["Title"] + " (" + imdbInfo["Year"] + ")", imdbInfo["imdbID"] ); // official IMDB movie name with year
             }
 
+            if ( null == imdbInfo.retrievedDate ) {
+                imdbInfo.retrievedDate = new Date();
+            }
+
+
             if ( null != imdbInfo &&  null != imdbInfo["imdbID"] ) {
                 cache.put( "imdbId."+ imdbInfo["imdbID"], JSON.stringify( imdbInfo ));
             }
 		}
 	}
 	
+    // Expire the cache if any of the following are true...
+    var cacheExpiryMaxDays = 7; // cache entry is older than x days
+    var cacheExpiryBeforeDate = new Date( 2012, 3, 6 ); // cache entry is older than this date 
 	
 	this.getImdbInfoFromCache = function( movieName ) {
 		// <summary>
@@ -1008,22 +1016,44 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 
         loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache( '" + movieName + "' )"  ):void(0);
 
-		if ( null != cache ) {
-			var imdbId = cache.get("moviename." + movieName);
-			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[moviename." + movieName  + "]=" + imdbId  ):void(0);
+		if ( null == cache ) {
+            return null; // no cache used
+        }
 
-			var imdbInfoString  = cache.get("imdbId." + imdbId);
-			loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[imdbId." + imdbId  + "]=" + imdbInfoString  ):void(0);
+		var imdbId = cache.get("moviename." + movieName);
+		loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[moviename." + movieName  + "]=" + imdbId  ):void(0);
 
-			if ( null != imdbInfoString ) {
+        if ( null == imdbId ) {
+            return null; // moviename not found
+        }
 
-				var imdbInfo = jQuery.parseJSON( imdbInfoString );
-				// augment with getUrl function
-				imdbInfo.getUrl = getImdbUrl;
-				return imdbInfo;
-			}
-		}
-		return null;
+		var imdbInfoString  = cache.get("imdbId." + imdbId);
+		loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[imdbId." + imdbId  + "]=" + imdbInfoString  ):void(0);
+
+		if ( null == imdbInfoString ) {
+            return null; // imdbInfo not found
+        }
+
+		var imdbInfo = jQuery.parseJSON( imdbInfoString );
+
+        if ( null == imdbInfo.retrievedDate ) {
+            return null; // imdbInfo added with old version
+        }
+
+        var now = new Date();
+        var dayDifference = ( now - imdbInfo.retrievedDate ) / 1000/*->sec*/ / 60/*->minute*/ / 60/*->hours*/ / 24/*->days*/;
+
+        // cache has expired, don't return the item
+        if (    dayDifference > cacheExpiryMaxDays
+            ||  imdbInfo.retrievedDate < cacheExpiryBeforeDate ) {
+            return null;
+        }
+
+        // all ok!
+
+		// augment with getUrl function
+		imdbInfo.getUrl = getImdbUrl;
+		return imdbInfo;
 	}
 	
 	

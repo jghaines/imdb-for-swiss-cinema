@@ -186,7 +186,7 @@ describe("ImdbMarkup", function() {
 			var imdbInfo = JSON.parse(imdbObjectString);
 			imdbInfo.Title = movieName;
 			imdbInfo.Year = movieYear;
-			imdbInfo.ID = imdbInfoId;
+			imdbInfo.imdbID = imdbInfoId;
 			imdbInfo.getUrl = getImdbUrl;
 			onloadImdbInfo( movieName, imdbInfo );
 		}
@@ -258,15 +258,13 @@ describe("ImdbMarkup", function() {
 			spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn( movieName );
 			spyOn(pageHandler, 'getMovieElements').andReturn( elements );
 
-			// pre-populate the cache
-			cache.put('moviename.' + movieName, imdbInfoId);
-			cache.put('moviename.' + movieName + ' (' + movieYear + ')', imdbInfoId);
-			cache.put('imdbId.tt101', imdbObjectString);
+			var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
+
+			markup.putImdbInfoToCache( movieName, JSON.parse( imdbObjectString ) )
 			// check the cache
 			expect(cache.length()).toBe(3);
 			
 			// do the markup
-			var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
 			markup.doMarkup( elements[0] );
 			
 			// pageHandler should get invoked to parse and markup the page
@@ -290,15 +288,12 @@ describe("ImdbMarkup", function() {
 			spyOn(pageHandler, 'getMovieNameForMovieElement').andReturn( movieName + ' (' + movieYear + ')' );
 			spyOn(pageHandler, 'getMovieElements').andReturn( elements );
 
-			// pre-populate the cache
-			cache.put('moviename.' + movieName, imdbInfoId);
-			cache.put('moviename.' + movieName + ' (' + movieYear + ')', imdbInfoId);
-			cache.put('imdbId.tt101', imdbObjectString);
+			var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
+
+			markup.putImdbInfoToCache( movieName, JSON.parse( imdbObjectString ) )
 			// check the cache
 			expect(cache.length()).toBe(3);
-			
-			// do the markup
-			var markup = new ImdbMarkup( pageHandler, movieLookupHandler, cache );
+
 			markup.doMarkup( elements[0] );
 			
 			// pageHandler should get invoked to parse and markup the page
@@ -317,6 +312,9 @@ describe("ImdbMarkup", function() {
 	describe("putImdbInfoToCache", function() {
 		var markup;
 
+		var movieName = "Warm Bodies (2013)"
+		var imdbInfo = JSON.parse( '{"Title":"Warm Bodies","Year":"2013","imdbRating":"7.4","imdbVotes":"14,428","imdbID":"tt1588173","Type":"movie","Response":"True"}' );
+
 		beforeEach(function() {
 			pageHandler = new CinemanListHandler(); // we aren't testing this class, just using it as an example instance
 			movieLookupHandler = new DummyMovieLookupHandler();
@@ -326,10 +324,15 @@ describe("ImdbMarkup", function() {
 
 		});
 
-		it("should populate the cahe", function() {
-			var movieName = "Warm Bodies (2013)"
-			var imdbInfo = JSON.parse( '{"Title":"Warm Bodies","Year":"2013","imdbRating":"7.4","imdbVotes":"14,428","imdbID":"tt1588173","Type":"movie","Response":"True"}' );
+		it("should populate the cache", function() {
+			markup.putImdbInfoToCache( movieName, imdbInfo );
+			expect(cache.length()).toBe(3);
+			expect(cache.get( "moviename.Warm Bodies") ).toBe( "tt1588173" );
+			expect(cache.get( "moviename.Warm Bodies (2013)") ).toBe( "tt1588173" );
+			expect(cache.get( "imdbId.tt1588173") ).not.toBe( null );
+		});
 
+		it("should populate the cahe", function() {
 			markup.putImdbInfoToCache( movieName, imdbInfo );
 			expect(cache.length()).toBe(3);
 			expect(cache.get( "moviename.Warm Bodies") ).toBe( "tt1588173" );

@@ -358,11 +358,24 @@ describe("ImdbMarkup", function() {
 			// check cache retrieve result
 			var cachedMovieInfo = markup.getImdbInfoFromCache( movieName );
 			expect( cachedMovieInfo ).not.toBe( null );
+			// check (de-)serialisation of .cachedOnDate
+			expect( cachedMovieInfo.cachedOnDate ).not.toBe( null );
+			expect( getObjectClass( cachedMovieInfo.cachedOnDate ) ).toBe( "Date" );
 		});
 
 		it("should not return expired cache items", function() {
 			// fake the cache so it looks older
 			imdbInfo.cachedOnDate = new Date( (new Date()) - ( 1000/*->sec*/ * 60/*->minute*/ * 60/*->hours*/ * 24/*->days*/ * 10 ) ); // set cached date to 10 days ago
+			markup.putImdbInfoToCache( movieName, imdbInfo );
+
+			// check cache retrieve result
+			var cachedMovieInfo = markup.getImdbInfoFromCache( movieName );
+			expect( cachedMovieInfo ).toBe( null );
+		});
+
+		it("should not return old, old cache items", function() {
+			// fake the cache so it looks older
+			imdbInfo.cachedOnDate = new Date( 2010, 01, 01 );
 			markup.putImdbInfoToCache( movieName, imdbInfo );
 
 			// check cache retrieve result

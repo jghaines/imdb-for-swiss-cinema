@@ -1,10 +1,32 @@
 //var loggingOn = true;
 
-//http://stackoverflow.com/a/3060267/358224
 function log(msg) {
+	//
+	// http://stackoverflow.com/a/3060267/358224
+	//
     setTimeout(function() {
         throw new Error(msg);
     }, 0);
+}
+
+
+/* Returns the class name of the argument or undefined if
+   it's not a valid JavaScript object.
+*/
+function getObjectClass(obj) {
+ 	//
+ 	// http://blog.magnetiq.com/post/514962277/finding-out-class-names-of-javascript-objects
+ 	//
+    if (obj && obj.constructor && obj.constructor.toString) {
+        var arr = obj.constructor.toString().match(
+            /function\s*(\w+)/);
+
+        if (arr && arr.length == 2) {
+            return arr[1];
+        }
+    }
+
+    return undefined;
 }
 
 function hereDoc(f) {
@@ -326,18 +348,26 @@ describe("ImdbMarkup", function() {
 
 		it("should populate the cache", function() {
 			markup.putImdbInfoToCache( movieName, imdbInfo );
+
+			// check cache content directly
 			expect(cache.length()).toBe(3);
 			expect(cache.get( "moviename.Warm Bodies") ).toBe( "tt1588173" );
 			expect(cache.get( "moviename.Warm Bodies (2013)") ).toBe( "tt1588173" );
 			expect(cache.get( "imdbId.tt1588173") ).not.toBe( null );
+
+			// check cache retrieve result
+			var cachedMovieInfo = markup.getImdbInfoFromCache( movieName );
+			expect( cachedMovieInfo ).not.toBe( null );
 		});
 
-		it("should populate the cahe", function() {
+		it("should not return expired cache items", function() {
+			// fake the cache so it looks older
+			imdbInfo.cachedOnDate = new Date( (new Date()) - ( 1000/*->sec*/ * 60/*->minute*/ * 60/*->hours*/ * 24/*->days*/ * 10 ) ); // set cached date to 10 days ago
 			markup.putImdbInfoToCache( movieName, imdbInfo );
-			expect(cache.length()).toBe(3);
-			expect(cache.get( "moviename.Warm Bodies") ).toBe( "tt1588173" );
-			expect(cache.get( "moviename.Warm Bodies (2013)") ).toBe( "tt1588173" );
-			expect(cache.get( "imdbId.tt1588173") ).not.toBe( null );
+
+			// check cache retrieve result
+			var cachedMovieInfo = markup.getImdbInfoFromCache( movieName );
+			expect( cachedMovieInfo ).toBe( null );
 		});
 	});
 });

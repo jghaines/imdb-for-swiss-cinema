@@ -991,8 +991,8 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
             	cache.put( "moviename."  + imdbInfo["Title"] + " (" + imdbInfo["Year"] + ")", imdbInfo["imdbID"] ); // official IMDB movie name with year
             }
 
-            if ( null == imdbInfo.retrievedDate ) {
-                imdbInfo.retrievedDate = new Date();
+            if ( null == imdbInfo.cachedOnDate ) {
+                imdbInfo.cachedOnDate = new Date();
             }
 
 
@@ -1003,8 +1003,8 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 	}
 	
     // Expire the cache if any of the following are true...
-    var cacheExpiryMaxDays = 7; // cache entry is older than x days
-    var cacheExpiryBeforeDate = new Date( 2012, 3, 6 ); // cache entry is older than this date 
+    var cacheExpiryMaxDays = 7; // ...cache entry is older than x days
+    var cacheExpiryBeforeDate = new Date( 2012, 3, 6 ); // ...cache entry is older than this date (kill old releases)
 	
 	this.getImdbInfoFromCache = function( movieName ) {
 		// <summary>
@@ -1036,16 +1036,21 @@ function ImdbMarkup ( pageHandler, movieLookupHandler, cache ) {
 
 		var imdbInfo = jQuery.parseJSON( imdbInfoString );
 
-        if ( null == imdbInfo.retrievedDate ) {
-            return null; // imdbInfo added with old version
+        // imdbInfo added with old version, treat as expired
+        if ( null == imdbInfo.cachedOnDate ) {
+            return null;
+        } else {
+            imdbInfo.cachedOnDate = new Date ( imdbInfo.cachedOnDate );
         }
 
         var now = new Date();
-        var dayDifference = ( now - imdbInfo.retrievedDate ) / 1000/*->sec*/ / 60/*->minute*/ / 60/*->hours*/ / 24/*->days*/;
+        var dayDifference = ( now - imdbInfo.cachedOnDate ) / 1000/*->sec*/ / 60/*->minute*/ / 60/*->hours*/ / 24/*->days*/;
+
+        loggingOn?GM_log( "ImdbMarkup.getImdbInfoFromCache() - cache[imdbId." + imdbId  + "].cachedOnDate = " + imdbInfo.retrievedDate  ):void(0);
 
         // cache has expired, don't return the item
         if (    dayDifference > cacheExpiryMaxDays
-            ||  imdbInfo.retrievedDate < cacheExpiryBeforeDate ) {
+            ||  imdbInfo.cachedOnDate < cacheExpiryBeforeDate ) {
             return null;
         }
 

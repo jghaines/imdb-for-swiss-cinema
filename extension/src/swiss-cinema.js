@@ -59,6 +59,8 @@ function CinemanListHandler () {
         // </summary>
 
         return baseElement.getElementsByClassName("listingtitle");
+        //return $(".listingtitle")
+        //untested jquery version of above.
     };
     
     
@@ -76,8 +78,11 @@ function CinemanListHandler () {
 
 		loggingOn?GM_log( "CinemanListHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" ):void(0); 
 
-        var ratingTableCell = movieElement.parentElement.nextElementSibling;
-        ratingTableCell.insertBefore( ratingElement, ratingTableCell.firstChild );
+        var ratingWrapper = movieElement.ownerDocument.createElement("div");
+        ratingWrapper.appendChild( ratingElement );
+
+        var ratingDiv = movieElement.parentElement.parentElement.nextElementSibling.firstElementChild;
+        ratingDiv.insertBefore( ratingWrapper, ratingDiv.firstChild );
     };
     
     

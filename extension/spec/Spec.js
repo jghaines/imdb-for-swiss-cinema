@@ -747,6 +747,25 @@ var starticketTestDocuments = {
 
 // Kitag tests
 var kitagTestDocuments = {
+
+	"de/programm/jetzt-im-kino/" : $('<li>').html( hereDoc(function() {/*!
+	<div class="movie-detail">
+                        <h3 class="movie-name nospace"><a href="/de/filme/before-i-go-to-sleep/?date=20141130" class="ng-binding">BEFORE I GO TO SLEEP</a></h3>
+                        <!-- ngIf: movie_infos.movie.age_rating --><p ng-if="movie_infos.movie.age_rating" class="ng-scope">
+                            <span class="age ng-binding" data-tooltip="" data-selector="tooltipacd5hw4gqfr" title="">
+                                Altersfreigabe: 16
+                            </span>
+                        </p><!-- end ngIf: movie_infos.movie.age_rating -->
+                        <ul class="btn-group-inline">
+                            <li><a class="btn-small btn-label color-gray-180 bg-gray-70" href="/de/filme/before-i-go-to-sleep/?date=20141130">Info</a></li>
+                            <!-- ngIf: movie_infos.movie.trailer_url --><li ng-if="movie_infos.movie.trailer_url" class="ng-scope">
+                                <a class="btn-small btn-label color-gray-180 bg-gray-70" lightbox-trigger="dynamic" lightbox-script="movie_player" lightbox-template-href="/api/movies/trailer/template/" lightbox-data-href="/api/movies/332/trailers/">Trailer</a>
+                            </li><!-- end ngIf: movie_infos.movie.trailer_url -->
+                        </ul>
+                    </div>
+	*/})),
+
+
 	"Index.aspx" : $('<tbody>').html( hereDoc(function() {/*!
 	<tr>               
 	    <td class="tdMatrixMovie">
@@ -806,20 +825,22 @@ describe("KitagIndexHandler", function() {
  
 	beforeEach(function() {
 		handler = new KitagIndexHandler();
-		testDocument = kitagTestDocuments["Index.aspx"];
+		//testDocument = kitagTestDocuments["Index.aspx"];
+		testDocument = kitagTestDocuments["de/programm/jetzt-im-kino/"];
 	});
  
 	describe("match", function() {
-		it("should be match on Index.aspx pages", function() {
-			expect(handler.match("http://www.kitag.com/Programm/Index.aspx?rollout=true")).toBe(true);
+		it("should be match on jetzt-im-kino pages", function() {
+			expect(handler.match("https://www.kitag.com/de/programm/jetzt-im-kino/")).toBe(true);
 		});
  
 		it("should NOT be match on Film.aspx pages", function() {
 			expect(handler.match("http://www.kitag.com/Programm/Film.aspx?MovieID=660379112")).not.toBe(true);
 		});
+
 	});
 	       
-	it("should find elements on the Index.aspx page", function() {
+	it("should find elements on the jetzt-im-kino page", function() {
 			var movieElements = handler.getMovieElements( testDocument);
  
 			expect(movieElements).not.toBe(null);
@@ -834,7 +855,7 @@ describe("KitagIndexHandler", function() {
 			expect(movieElements.length).toBe(1);
  
 			// get the handler to give us the movie names for each element
-			expect(handler.getMovieNameForMovieElement(movieElements[0])).toBe("A FEW BEST MEN");
+			expect(handler.getMovieNameForMovieElement(movieElements[0])).toBe("BEFORE I GO TO SLEEP");
 			});
 	});
  
@@ -986,21 +1007,6 @@ describe("ImdbForSwissCinema", function() {
 	describe("FilmPodiumHandler", function() {
 		it("should match handler for the URL " + "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3", function() {
 			expect(handler.getPageHandler( "http://www.filmpodium.ch/Programm/ReiheInfo.aspx?t=1&r=3" ) instanceof FilmPodiumHandler).toBe(true);
-		});
-	});
-		
-	describe("KitagFilmHandler", function() {
-		it("should match handler for the URL " + "http://www.kitag.com/Programm/Film.aspx?EventID=649307890", function() {
-			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Film.aspx?EventID=649307890" ) instanceof KitagFilmHandler).toBe(true);
-		});
-	});
-		
-	describe("KitagIndexHandler", function() {
-		it("should match handler for the URL " + "http://www.kitag.com/Programm/Index.aspx?rollout=true", function() {
-			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Index.aspx?rollout=true" ) instanceof KitagIndexHandler).toBe(true);
-		});
-		it("should match handler for the URL " + "http://www.kitag.com/Programm/Kino.aspx?ID=999", function() {
-			expect(handler.getPageHandler( "http://www.kitag.com/Programm/Kino.aspx?ID=19530" ) instanceof KitagIndexHandler).toBe(true);
 		});
 	});
 		

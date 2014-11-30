@@ -279,7 +279,7 @@ function KitagIndexHandler () {
 	// Implement a PageHandler for finding movie links on kitag.com list pages - Index.aspx, Kino.aspx
 	// </summary>
  
-	var loggingOn = false;
+	var loggingOn = true;
 	var log = log4javascript.getLogger("SwissCinema.KitagIndexHandler");
 			   
 	this.match = function(href) {
@@ -290,7 +290,8 @@ function KitagIndexHandler () {
 		// @returns whether we can handle this page
 		// </summary>
 
-		return (null != href.match( "kitag\.(com|ch)/Programm/(Index|Kino).aspx" ));
+		return (null != href.match( "kitag\.(com|ch)/.*/jetzt-im-kino/" ));
+        //de/programm/jetzt-im-kino/
 	};
 			   
    
@@ -302,7 +303,7 @@ function KitagIndexHandler () {
 		// @returns an array of DOM Elements of each movie reference (e.g. their hyperlink)
 		// </summary>
 
-		return $('a[href^="Film.aspx"]:not(:has(img)):not([id$="Trailer"])', baseElement);
+		return $('.movie-detail', baseElement);
 	};
    
 	
@@ -317,10 +318,8 @@ function KitagIndexHandler () {
 		// </summary>
 
 		log.info( "KitagHandler.addRatingElement( " + ratingElement + ", " + movieElement + " )" );
-		var ratingContainer = $(movieElement).parent().parent().next().find('td');
-							   
-		ratingContainer.prepend("<br />");
-		ratingContainer.prepend( ratingElement );
+	
+        $(ratingElement).insertAfter($(movieElement).find('h3'));
 	};
    
 	
@@ -331,8 +330,9 @@ function KitagIndexHandler () {
 		// @parameter movieElement an element from the list from this.getMovieElements()
 		// @returns The name of the movie, optionally with " (release-year)" appended
 		// </summary>
+        loggingOn ? console.log( "KitagHandler.getMovieNameForMovieElement(" + movieElement + " )" ) : void(0);
  
-		return extractKitagMovieName(movieElement.text);
+        return extractKitagMovieName( $(movieElement).find('h3 a')[0].innerText );
 	};
 };
  
@@ -341,7 +341,7 @@ function KitagFilmHandler () {
 	// Implement a PageHandler for finding movie links on kitag.com.
 	// </summary>
  
-	var loggingOn = false;
+	var loggingOn = true;
    
 	this.match = function(href) {
 		// <summary>
@@ -393,6 +393,8 @@ function KitagFilmHandler () {
 		// @parameter movieElement an element from the list from this.getMovieElements()
 		// @returns The name of the movie, optionally with " (release-year)" appended
 		// </summary>
+
+        loggingOn ? console.log( "KitagHandler.getMovieNameForMovieElement(" + movieElement + " )" ) : void(0);
  
 		return extractKitagMovieName( movieElement.innerText );
 	};
@@ -1267,7 +1269,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
     // <summary>
     this.movieLookupHandler = movieLookupHandler;
 
-    var loggingOn = false;
+    var loggingOn = true;
 
 	this.supportsLocalStorage = function() {
 		// <summary>
@@ -1303,7 +1305,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 		// @param href The URL of the page
 		// @return The pageHandler object, or null if none found
 		// </summary> 
-		loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + pageHandlers.length + " handlers on " + href ):void(0); 
+		loggingOn?console.log( "ImdbForSwissCinema.getPageHandler() trying " + pageHandlers.length + " handlers on " + href ):void(0); 
 		for ( var i=0; i < pageHandlers.length; ++i ) {
 			var pageHandler = pageHandlers[i];
 			loggingOn?GM_log( "ImdbForSwissCinema.getPageHandler() trying " + getObjectClass(pageHandler) ):void(0); 
@@ -1338,6 +1340,7 @@ function ImdbForSwissCinema ( movieLookupHandler ) {
 (function () { 
     return { 
         exec: function () { 
+            console.log("SwissCinema init");
 			//var movieLookupHandler = new ImdbComMovieLookup(); // use imdb.com to lookup movie info
 			var movieLookupHandler = new ImdbapiComMovieLookup(); // use imdbapi.com to lookup movie info
 
